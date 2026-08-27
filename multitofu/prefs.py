@@ -1,7 +1,7 @@
 """Preferences window: characters, teams, order, binds."""
 import objc
 from AppKit import (
-    NSApp, NSBackingStoreBuffered, NSBezelStyleRounded, NSButton,
+    NSAlert, NSApp, NSBackingStoreBuffered, NSBezelStyleRounded, NSButton,
     NSClosableWindowMask, NSColor, NSFont, NSImageScaleProportionallyUpOrDown,
     NSImageView, NSMakeRect, NSMiniaturizableWindowMask, NSPopUpButton,
     NSResizableWindowMask, NSScrollView, NSSwitchButton, NSTextField,
@@ -23,7 +23,7 @@ BIND_ORDER = ["next", "prev", "leader", "refresh", "prefs", "peek"]
 ROW_HEIGHT = 34
 HEADER_HEIGHT = 118
 WINDOW_W = 900
-WINDOW_H = 720
+WINDOW_H = 780
 
 
 class FlippedView(NSView):
@@ -66,6 +66,7 @@ class PrefsController(NSObject):
         self.rows_view = None
         self.bind_buttons = {}
         self.global_buttons = {}
+        self.status_timer = None
         return self
 
     # ---------- window ----------
@@ -77,6 +78,24 @@ class PrefsController(NSObject):
         self.reload()
         NSApp.activateIgnoringOtherApps_(True)
         self.window.makeKeyAndOrderFront_(None)
+        if self.status_timer is None:
+            # Permission, clients and conflicts all change behind the window's
+            # back. A banner that only redraws on a rescan goes stale.
+            self.status_timer = NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(
+                1.5, self, "statusTick:", None, True)
+
+    def statusTick_(self, timer):
+        if self.window is None or not self.window.isVisible():
+            timer.invalidate()
+            self.status_timer = None
+            return
+        self._update_status()
+
+    def windowWillClose_(self, notification):
+        if self.status_timer is not None:
+            self.status_timer.invalidate()
+            self.status_timer = None
+        self._cancel_capture()
 
     def _build(self):
         style = (NSWindowStyleMaskTitled | NSClosableWindowMask
@@ -86,13 +105,18 @@ class PrefsController(NSObject):
         self.window.setTitle_(t("prefs_title", name="Multi-Tofu"))
         self.window.center()
         self.window.setReleasedWhenClosed_(False)
+        self.window.setDelegate_(self)
 
         content = FlippedView.alloc().initWithFrame_(
             NSMakeRect(0, 0, WINDOW_W, WINDOW_H))
         self.window.setContentView_(content)
 
-        self.status_label = label("", 20, 14, WINDOW_W - 40, 20, bold=True, size=12)
+        self.status_label = label("", 20, 14, WINDOW_W - 250, 20, bold=True, size=12)
         content.addSubview_(self.status_label)
+        self.fix_button = button(t("fix_access"), WINDOW_W - 220, 10, 200, 26,
+                                 self, "fixAccess:")
+        self.fix_button.setHidden_(True)
+        content.addSubview_(self.fix_button)
 
         content.addSubview_(label(t("global_shortcuts"), 20, 46, 260, 20, bold=True, size=13))
         specs = [(key, t("bind_" + key)) for key in BIND_ORDER]
@@ -150,33 +174,44 @@ class PrefsController(NSObject):
         self.peek_popup.setAction_("peekTargetChanged:")
         content.addSubview_(self.peek_popup)
 
-        self.awake_check = NSButton.alloc().initWithFrame_(NSMakeRect(340, 238, 400, 24))
+        # One checkbox per line on the left, the long explanation on the
+        # right. Two columns of stacked checkboxes overlapped in French, where
+        # every label is a third longer than in English.
+        self.awake_check = NSButton.alloc().initWithFrame_(NSMakeRect(540, 238, 340, 22))
         self.awake_check.setButtonType_(NSSwitchButton)
         self.awake_check.setTitle_(t("awake_label"))
         self.awake_check.setTarget_(self)
         self.awake_check.setAction_("awakeToggled:")
         content.addSubview_(self.awake_check)
-        content.addSubview_(label(t("awake_help"), 340, 262, WINDOW_W - 370, 34,
+        content.addSubview_(label(t("awake_help"), 540, 264, WINDOW_W - 560, 60,
                                   size=10, color=NSColor.secondaryLabelColor()))
 
-        self.login_check = NSButton.alloc().initWithFrame_(NSMakeRect(340, 272, 420, 24))
-        self.login_check.setButtonType_(NSSwitchButton)
-        self.login_check.setTitle_(t("login_label"))
-        self.login_check.setTarget_(self)
-        self.login_check.setAction_("loginToggled:")
-        content.addSubview_(self.login_check)
-        self.login_note = label("", 340, 296, WINDOW_W - 370, 16, size=10,
-                                color=NSColor.secondaryLabelColor())
-        content.addSubview_(self.login_note)
-
-        self.launch_check = NSButton.alloc().initWithFrame_(NSMakeRect(20, 272, 300, 24))
+        self.launch_check = NSButton.alloc().initWithFrame_(NSMakeRect(20, 276, 500, 22))
         self.launch_check.setButtonType_(NSSwitchButton)
         self.launch_check.setTitle_(t("open_on_launch"))
         self.launch_check.setTarget_(self)
         self.launch_check.setAction_("launchToggled:")
         content.addSubview_(self.launch_check)
 
-        content.addSubview_(label(t("characters"), 20, 322, 200, 20, bold=True, size=13))
+        self.hide_check = NSButton.alloc().initWithFrame_(NSMakeRect(20, 304, 500, 22))
+        self.hide_check.setButtonType_(NSSwitchButton)
+        self.hide_check.setTitle_(t("hide_others_label"))
+        self.hide_check.setToolTip_(t("hide_others_help"))
+        self.hide_check.setTarget_(self)
+        self.hide_check.setAction_("hideOthersToggled:")
+        content.addSubview_(self.hide_check)
+
+        self.login_check = NSButton.alloc().initWithFrame_(NSMakeRect(20, 332, 500, 22))
+        self.login_check.setButtonType_(NSSwitchButton)
+        self.login_check.setTitle_(t("login_label"))
+        self.login_check.setTarget_(self)
+        self.login_check.setAction_("loginToggled:")
+        content.addSubview_(self.login_check)
+        self.login_note = label("", 20, 356, 500, 16, size=10,
+                                color=NSColor.secondaryLabelColor())
+        content.addSubview_(self.login_note)
+
+        content.addSubview_(label(t("characters"), 20, 386, 200, 20, bold=True, size=13))
         muted = NSColor.secondaryLabelColor()
         for text, col_x, width in [(t("col_order"), 8, 40), (t("col_on"), 64, 40),
                                    (t("col_character"), 124, 165),
@@ -185,10 +220,10 @@ class PrefsController(NSObject):
                                    (t("col_team"), 532, 125),
                                    (t("col_key"), 666, 150)]:
             content.addSubview_(
-                label(text, 16 + col_x, 352, width, 16, size=10, color=muted))
+                label(text, 16 + col_x, 416, width, 16, size=10, color=muted))
 
         scroll = NSScrollView.alloc().initWithFrame_(
-            NSMakeRect(16, 372, WINDOW_W - 32, WINDOW_H - 390))
+            NSMakeRect(16, 436, WINDOW_W - 32, WINDOW_H - 454))
         scroll.setHasVerticalScroller_(True)
         scroll.setDrawsBackground_(False)
         scroll.setAutoresizingMask_(2 | 16)  # width + height sizable
@@ -211,6 +246,7 @@ class PrefsController(NSObject):
         self.awake_check.setState_(1 if appnap.is_disabled(self.app.config) else 0)
         self.launch_check.setState_(
             1 if cfg.get("open_settings_on_launch", True) else 0)
+        self.hide_check.setState_(1 if cfg.get("hide_others") else 0)
         self.login_check.setEnabled_(loginitem.available())
         self.login_check.setState_(1 if loginitem.is_enabled() else 0)
         if not loginitem.available():
@@ -332,6 +368,33 @@ class PrefsController(NSObject):
             colour = NSColor.systemGreenColor()
         self.status_label.setStringValue_(text)
         self.status_label.setTextColor_(colour)
+        self.fix_button.setHidden_(trusted)
+
+    def fixAccess_(self, sender):
+        self._cancel_capture()
+        from .app import APP_NAME
+        alert = NSAlert.alloc().init()
+        alert.setMessageText_(t("fix_access_title", name=APP_NAME))
+        alert.setInformativeText_(t("fix_access_body", name=APP_NAME))
+        alert.addButtonWithTitle_(t("fix_reset"))
+        alert.addButtonWithTitle_(t("fix_open_settings"))
+        alert.addButtonWithTitle_(t("fix_cancel"))
+        NSApp.activateIgnoringOtherApps_(True)
+        # A sheet, not runModal. A free standing alert from an accessory app
+        # opens behind the window that raised it.
+        alert.beginSheetModalForWindow_completionHandler_(
+            self.window, self._fixAccessDone)
+
+    @objc.python_method
+    def _fixAccessDone(self, choice):
+        from .app import open_accessibility_pane, repair_accessibility
+        if choice == 1000:
+            if repair_accessibility():
+                NSApp.terminate_(None)
+                return
+            open_accessibility_pane()
+        elif choice == 1001:
+            open_accessibility_pane()
 
     @objc.python_method
     def _capture(self, button_ref, apply_fn):
@@ -498,6 +561,16 @@ class PrefsController(NSObject):
         self._cancel_capture()
         self.app.config.data["open_settings_on_launch"] = bool(sender.state())
         self.app.config.save()
+
+    def hideOthersToggled_(self, sender):
+        self._cancel_capture()
+        wanted = bool(sender.state())
+        self.app.config.data["hide_others"] = wanted
+        self.app.config.save()
+        if not wanted:
+            # turning it off has to give the clients back, not leave them
+            # invisible until the next switch
+            self.app.scanner.unhide_all()
 
     def awakeToggled_(self, sender):
         self._cancel_capture()

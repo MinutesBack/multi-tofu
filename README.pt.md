@@ -39,6 +39,9 @@ o AppKit.
   parece que nada aconteceu. Um clique desliga isso.
 - **Uma tecla, uma ação.** Atribuir uma tecla que outro atalho já tem libera ela
   lá, em vez de deixar uma ação que nunca dispara.
+- **Só o cliente em que você está.** Ligue a ocultação e os outros clientes
+  somem enquanto você joga o da frente. Eles continuam rodando e voltam assim
+  que você troca para eles.
 
 ## Onde ficam seus ajustes
 

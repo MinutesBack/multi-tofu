@@ -42,7 +42,9 @@ VERSION="$(./.venv/bin/python -c 'import multitofu; print(multitofu.__version__)
 xattr -cr "$APP"
 find "$APP" -name "._*" -delete 2>/dev/null || true
 
-# a stable ad-hoc identity keeps the Accessibility grant across rebuilds.
+# Ad-hoc signing keys the identity to the code hash, so every rebuild is a new
+# app to TCC and the Accessibility grant has to be given again. The Settings
+# window has a Fix access button that resets the record for exactly this.
 # PlistBuddy and PyInstaller both leave extended attributes behind, and
 # codesign refuses to sign over them, so clean and retry once.
 if ! codesign --force --deep --sign - --identifier fr.multitofu.app "$APP" 2>/dev/null; then

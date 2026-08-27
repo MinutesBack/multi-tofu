@@ -287,6 +287,11 @@ class Scanner:
         app = NSRunningApplication.runningApplicationWithProcessIdentifier_(pid)
         if app is None:
             return False
+        hiding = bool(self.config.data.get("hide_others"))
+        if hiding:
+            # a hidden app cannot be raised, and only this option ever hides
+            # one, so the round trip stays off the path when it is off
+            AXUIElementSetAttributeValue(app_ref, "AXHidden", False)
         ok = app.activateWithOptions_(
             NSApplicationActivateIgnoringOtherApps | NSApplicationActivateAllWindows)
         if not ok:
@@ -294,7 +299,39 @@ class Scanner:
                 app.activate()
             except Exception:
                 pass
+        if hiding:
+            self.hide_others(pid)
         return True
+
+    def _set_hidden(self, pid, hidden):
+        """Through the Accessibility API, not NSRunningApplication.
+
+        NSRunningApplication.hide() answers False for another application's
+        process, so it silently does nothing. AXHidden on the app element is
+        the same system-wide hide, and it is the permission we already hold.
+        """
+        try:
+            AXUIElementSetAttributeValue(self._app_ref(pid), "AXHidden", bool(hidden))
+        except Exception:
+            pass
+
+    def hide_others(self, keep_pid):
+        """Hide every client except the one in front.
+
+        Hiding is at the application level, which is what you want here: a
+        client with several windows goes away whole. It is reversible and the
+        process keeps running, so nothing disconnects.
+        """
+        for acc in self.accounts:
+            pid = acc.get("pid")
+            if pid != keep_pid:
+                self._set_hidden(pid, True)
+
+    def unhide_all(self):
+        """Nobody should be left with invisible clients because they quit
+        Multi-Tofu, so this runs on exit and when the option goes off."""
+        for acc in self.accounts:
+            self._set_hidden(acc.get("pid"), False)
 
     def focus_by_name(self, name):
         for acc in self.accounts:

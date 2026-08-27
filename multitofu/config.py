@@ -34,6 +34,9 @@ DEFAULTS = {
     # what a bare peek looks at: leader, next or previous
     "peek_target": "leader",
     "keep_clients_awake": False,
+    # hide every other client when you switch, so nothing peeks around the
+    # edges and Command+Tab stays readable
+    "hide_others": False,
     "wheel_enabled": True,
     "wheel_modifier": "alt",
     "wheel_radius": 148,

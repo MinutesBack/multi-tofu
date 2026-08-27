@@ -7,6 +7,10 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 os.environ["MULTITOFU_QUIET"] = "1"
 os.environ.setdefault("MULTITOFU_CONFIG", "/tmp/multitofu_shots.json")
 
+# tools/make_screenshots.py [language]  ->  docs/preferences-<language>.png
+LANG = sys.argv[1] if len(sys.argv) > 1 else "en"
+SUFFIX = "" if LANG == "en" else "-" + LANG
+
 from AppKit import (NSApplication, NSApplicationActivationPolicyRegular, NSApp,
                     NSBitmapImageFileTypePNG, NSMakeRect)
 from Foundation import NSObject, NSTimer
@@ -14,6 +18,7 @@ from Foundation import NSObject, NSTimer
 from multitofu.app import DosoftApp
 from multitofu.accounts import Account
 from multitofu.classes import to_slug
+from multitofu.i18n import set_language
 from multitofu.radial import Wheel
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -57,6 +62,8 @@ class Shots(NSObject):
 
     def prefs_(self, timer):
         self.app.scan_timer and self.app.scan_timer.invalidate()
+        self.app.config.data["language"] = LANG
+        set_language(LANG)
         self.app.scanner.accounts = fake_accounts()
         self.app.config.data["leader_name"] = "Account 1"
         self.app.config.data["roles"] = {n: r for n, _, _, r in CAST}
@@ -65,11 +72,24 @@ class Shots(NSObject):
     def grabPrefs_(self, timer):
         window = self.app.prefs.window
         number = window.windowNumber()
-        subprocess.run(["screencapture", "-x", "-o", "-l", str(number),
-                        os.path.join(DOCS, "preferences.png")])
-        print("wrote", os.path.join(DOCS, "preferences.png"))
+        out = os.path.join(DOCS, f"preferences{SUFFIX}.png")
+        subprocess.run(["screencapture", "-x", "-o", "-l", str(number), out])
+        print("wrote", out)
         NSApp.terminate_(self)
 
+
+# the window is built once, in whatever language the config carried at
+# startup, so the language has to be in place before the app is created
+import json
+_cfg_path = os.environ["MULTITOFU_CONFIG"]
+try:
+    with open(_cfg_path, encoding="utf-8") as fh:
+        _stored = json.load(fh)
+except (OSError, ValueError):
+    _stored = {}
+_stored["language"] = LANG
+with open(_cfg_path, "w", encoding="utf-8") as fh:
+    json.dump(_stored, fh, indent=2, ensure_ascii=False)
 
 app = NSApplication.sharedApplication()
 app.setActivationPolicy_(NSApplicationActivationPolicyRegular)

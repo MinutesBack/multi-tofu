@@ -56,6 +56,10 @@ STRINGS = {
         "es": "Ajustes...", "pt": "Ajustes...",
     },
     "menu_quit": {"en": "Quit", "fr": "Quitter", "es": "Salir", "pt": "Sair"},
+    "menu_close_window": {
+        "en": "Close Window", "fr": "Fermer la fen\u00eatre",
+        "es": "Cerrar la ventana", "pt": "Fechar a janela",
+    },
     "menu_quit_clients": {
         "en": "Close all Dofus clients...", "fr": "Fermer tous les clients Dofus...",
         "es": "Cerrar todos los clientes de Dofus...", "pt": "Fechar todos os clientes do Dofus...",
@@ -180,14 +184,10 @@ STRINGS = {
         "pt": "{actions} compartilham a mesma tecla. Só um deles vai disparar.",
     },
     "status_no_access": {
-        "en": "Accessibility is off, so nothing works yet. System Settings > "
-              "Privacy & Security > Accessibility.",
-        "fr": "L'Accessibilité est désactivée, rien ne fonctionne encore. "
-              "Réglages Système > Confidentialité et sécurité > Accessibilité.",
-        "es": "La Accesibilidad está desactivada, todavía no funciona nada. "
-              "Ajustes del Sistema > Privacidad y seguridad > Accesibilidad.",
-        "pt": "A Acessibilidade está desativada, nada funciona ainda. Ajustes "
-              "do Sistema > Privacidade e segurança > Acessibilidade.",
+        "en": "Accessibility is off, so nothing works yet.",
+        "fr": "L'Accessibilité est désactivée, rien ne fonctionne encore.",
+        "es": "La Accesibilidad está desactivada, todavía no funciona nada.",
+        "pt": "A Acessibilidade está desativada, nada funciona ainda.",
     },
     "status_no_client": {
         "en": "Ready. No Dofus client open yet. Launch your clients and this "
@@ -285,6 +285,77 @@ STRINGS = {
     "menubar_alert_keep": {
         "en": "Leave it in the menu bar", "fr": "Laisser dans la barre des menus",
         "es": "Dejarlo en la barra de menús", "pt": "Deixar na barra de menus",
+    },
+    "fix_access": {
+        "en": "Fix access\u2026",
+        "fr": "R\u00e9parer l'acc\u00e8s\u2026",
+        "es": "Reparar el acceso\u2026",
+        "pt": "Reparar o acesso\u2026",
+    },
+    "fix_access_title": {
+        "en": "macOS is refusing {name}",
+        "fr": "macOS refuse {name}",
+        "es": "macOS est\u00e1 rechazando {name}",
+        "pt": "O macOS est\u00e1 recusando {name}",
+    },
+    "fix_access_body": {
+        "en": "The switch in System Settings can look on and still not work. "
+              "Each new build of {name} is signed differently, so the row left "
+              "over from the previous version no longer matches this app.\n\n"
+              "Reset the permission and {name} restarts and asks again. Open "
+              "System Settings if you would rather remove the row by hand with "
+              "the minus button.",
+        "fr": "L'interrupteur dans les R\u00e9glages Syst\u00e8me peut para\u00eetre "
+              "actif sans fonctionner. Chaque nouvelle version de {name} est "
+              "sign\u00e9e diff\u00e9remment, la ligne h\u00e9rit\u00e9e de la version "
+              "pr\u00e9c\u00e9dente ne correspond donc plus \u00e0 cette app.\n\n"
+              "R\u00e9initialisez l'autorisation et {name} red\u00e9marre et redemande. "
+              "Ouvrez les R\u00e9glages Syst\u00e8me si vous pr\u00e9f\u00e9rez retirer la "
+              "ligne \u00e0 la main avec le bouton moins.",
+        "es": "El interruptor de Ajustes del Sistema puede parecer activo y aun "
+              "as\u00ed no funcionar. Cada compilaci\u00f3n de {name} se firma de "
+              "forma distinta, as\u00ed que la fila que qued\u00f3 de la versi\u00f3n "
+              "anterior ya no corresponde a esta app.\n\nReinicia el permiso y "
+              "{name} se reabre y vuelve a pedirlo. Abre Ajustes del Sistema si "
+              "prefieres quitar la fila a mano con el bot\u00f3n menos.",
+        "pt": "O bot\u00e3o nos Ajustes do Sistema pode parecer ligado e mesmo "
+              "assim n\u00e3o funcionar. Cada nova vers\u00e3o do {name} \u00e9 "
+              "assinada de forma diferente, ent\u00e3o a linha que sobrou da "
+              "vers\u00e3o anterior j\u00e1 n\u00e3o corresponde a este app.\n\n"
+              "Redefina a permiss\u00e3o e o {name} reabre e pede de novo. Abra os "
+              "Ajustes do Sistema se preferir remover a linha \u00e0 m\u00e3o com o "
+              "bot\u00e3o de menos.",
+    },
+    "fix_reset": {
+        "en": "Reset and relaunch",
+        "fr": "R\u00e9initialiser et relancer",
+        "es": "Reiniciar y reabrir",
+        "pt": "Redefinir e reabrir",
+    },
+    "fix_open_settings": {
+        "en": "Open System Settings",
+        "fr": "Ouvrir les R\u00e9glages Syst\u00e8me",
+        "es": "Abrir Ajustes del Sistema",
+        "pt": "Abrir Ajustes do Sistema",
+    },
+    "fix_cancel": {
+        "en": "Cancel", "fr": "Annuler", "es": "Cancelar", "pt": "Cancelar",
+    },
+    "hide_others_label": {
+        "en": "Hide the other clients when I switch",
+        "fr": "Masquer les autres clients quand je change",
+        "es": "Ocultar los otros clientes al cambiar",
+        "pt": "Ocultar os outros clientes ao trocar",
+    },
+    "hide_others_help": {
+        "en": "Only the client in front stays on screen. The others keep "
+              "running and come back the moment you switch to them.",
+        "fr": "Seul le client au premier plan reste \u00e0 l'\u00e9cran. Les autres "
+              "continuent de tourner et reviennent d\u00e8s que vous passez dessus.",
+        "es": "Solo el cliente en primer plano queda en pantalla. Los dem\u00e1s "
+              "siguen corriendo y vuelven en cuanto cambias a ellos.",
+        "pt": "S\u00f3 o cliente da frente fica na tela. Os outros continuam "
+              "rodando e voltam assim que voc\u00ea troca para eles.",
     },
     "alert_ok": {"en": "OK", "fr": "OK", "es": "OK", "pt": "OK"},
     # French puts a space before a colon

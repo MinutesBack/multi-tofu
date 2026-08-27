@@ -39,6 +39,9 @@ CGEventTap y AppKit.
   parece que no ha pasado nada. Un clic para desactivarlo.
 - **Una tecla, una acción.** Asignar una tecla que ya tiene otro atajo se la
   quita a ese, en vez de dejar una acción que nunca se activa.
+- **Solo el cliente en el que estás.** Activa el ocultado y los demás clientes
+  desaparecen mientras juegas el de delante. Siguen corriendo y vuelven en
+  cuanto cambias a ellos.
 
 ## Dónde se guardan tus ajustes
 

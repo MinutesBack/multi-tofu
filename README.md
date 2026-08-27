@@ -39,6 +39,9 @@ and AppKit.
   looks like nothing happened. One click turns that off.
 - **One key, one action.** Assigning a key another shortcut holds frees it
   there, rather than leaving two actions on one key where only one ever fires.
+- **Only the client you are on.** Switch on hiding and every other client
+  disappears while you play the one in front. They keep running and come back
+  the moment you switch to them.
 
 ## Having it running when you play
 

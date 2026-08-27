@@ -4,7 +4,7 @@ SITE = "https://minutesback.github.io/multi-tofu/"
 REPO = "https://github.com/MinutesBack/multi-tofu"
 RELEASES = REPO + "/releases"
 DOWNLOAD = REPO + "/releases/latest"
-VERSION = "0.3.0"
+VERSION = "0.4.0"
 
 LANGS = ["en", "fr", "es", "pt"]
 LANG_NAMES = {"en": "English", "fr": "Français", "es": "Español", "pt": "Português"}
@@ -34,6 +34,7 @@ CONTENT = {
    ("Opens where you left it", "Launching Multi-Tofu opens Settings, so it never looks like nothing happened. Turn that off in one click if you would rather it stayed quiet."),
    ("One key, one action", "Assigning a key that another shortcut holds frees it there. Two actions on one key means one of them silently never fires."),
    ("There when you are", "Start it at login in one click, so it is already running when you open the Ankama Launcher. Idle it costs nothing, with no client open it never even asks the system about windows."),
+   ("Only the client you are on", "Switch on hiding and every other client disappears while you play the one in front. Nothing peeks around the edges, Command Tab stays readable, and they all come back the moment you switch to them."),
  ],
  "names_title": "It learns your characters by itself",
  "names_body": "You never type a character name. Multi-Tofu reads the Dofus window title, so the moment a character logs in their real name appears in the wheel, in the menu bar and in the settings list. A client that is open but still sitting on the login screen has no character on it yet, so it shows as Account 1, Account 2 and so on. Those stay clickable in the menu, so you can jump to one and log it in, but they are kept out of the F1 rotation. A keypress never lands you on a window with no character on it.",
@@ -86,6 +87,7 @@ CONTENT = {
    ("Ouvre sur vos réglages", "Lancer Multi-Tofu ouvre les réglages, on ne se demande jamais s'il a démarré. Désactivable en un clic si vous préférez le silence."),
    ("Une touche, une action", "Attribuer une touche déjà prise la libère chez l'autre action. Deux actions sur une touche, c'est une des deux qui ne se déclenche jamais."),
    ("Déjà là quand vous arrivez", "Lancement à l'ouverture de session en un clic, l'app tourne déjà quand vous ouvrez l'Ankama Launcher. Au repos elle ne coûte rien, sans client ouvert elle n'interroge même pas le système."),
+   ("Seul le client où vous êtes", "Activez le masquage et tous les autres clients disparaissent pendant que vous jouez celui du dessus. Plus rien ne dépasse sur les bords, Command Tab reste lisible, et ils reviennent dès que vous passez dessus."),
  ],
  "names_title": "Il reconnaît vos personnages tout seul",
  "names_body": "Vous ne saisissez jamais un pseudo. Multi-Tofu lit le titre de la fenêtre Dofus, donc dès qu'un personnage se connecte son vrai nom apparaît dans la roue, dans la barre des menus et dans les réglages. Un client ouvert mais resté sur l'écran de connexion n'a pas encore de personnage, il s'affiche donc en Compte 1, Compte 2 et ainsi de suite. Ces entrées restent cliquables dans le menu, vous pouvez y aller pour vous connecter, mais elles sont exclues de la rotation F1. Une touche ne vous envoie jamais sur une fenêtre sans personnage.",
@@ -138,6 +140,7 @@ CONTENT = {
    ("Abre donde lo dejaste", "Abrir Multi-Tofu muestra los ajustes, así nunca parece que no ha pasado nada. Se desactiva en un clic si prefieres que no aparezca."),
    ("Una tecla, una acción", "Asignar una tecla que ya tiene otro atajo se la quita a ese. Dos acciones en una tecla significa que una nunca se activa."),
    ("Ahí cuando llegas", "Arranca al iniciar sesión con un clic, así ya está lista cuando abres el Ankama Launcher. En reposo no cuesta nada, sin ningún cliente abierto ni siquiera consulta al sistema."),
+   ("Solo el cliente en el que estás", "Activa el ocultado y los demás clientes desaparecen mientras juegas el de delante. Nada asoma por los bordes, Command Tab sigue legible y vuelven en cuanto cambias a ellos."),
  ],
  "names_title": "Reconoce tus personajes solo",
  "names_body": "Nunca escribes un nombre. Multi-Tofu lee el título de la ventana de Dofus, así que en cuanto un personaje inicia sesión su nombre real aparece en la rueda, en la barra de menús y en los ajustes. Un cliente abierto pero todavía en la pantalla de conexión no tiene personaje, así que se muestra como Cuenta 1, Cuenta 2 y así. Siguen siendo clicables en el menú, puedes ir a conectarte, pero quedan fuera de la rotación de F1. Una pulsación nunca te lleva a una ventana sin personaje.",
@@ -190,6 +193,7 @@ CONTENT = {
    ("Abre onde você parou", "Abrir o Multi-Tofu mostra os ajustes, então nunca parece que nada aconteceu. Desligue num clique se preferir que fique quieto."),
    ("Uma tecla, uma ação", "Atribuir uma tecla que outro atalho já tem libera ela lá. Duas ações numa tecla significa que uma nunca dispara."),
    ("Já lá quando você chega", "Inicia no login com um clique, então já está rodando quando você abre o Ankama Launcher. Parado não custa nada, sem nenhum cliente aberto nem consulta o sistema."),
+   ("Só o cliente em que você está", "Ligue a ocultação e os outros clientes somem enquanto você joga o da frente. Nada aparece nas bordas, o Command Tab continua legível, e eles voltam assim que você troca para eles."),
  ],
  "names_title": "Ele reconhece seus personagens sozinho",
  "names_body": "Você nunca digita um nome. O Multi-Tofu lê o título da janela do Dofus, então assim que um personagem entra o nome real dele aparece na roda, na barra de menus e nos ajustes. Um cliente aberto mas ainda na tela de login não tem personagem, então aparece como Conta 1, Conta 2 e assim por diante. Eles continuam clicáveis no menu, você pode ir lá fazer login, mas ficam fora da rotação do F1. Uma tecla nunca leva você para uma janela sem personagem.",

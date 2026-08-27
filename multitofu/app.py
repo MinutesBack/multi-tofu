@@ -25,6 +25,7 @@ from .radial import Wheel, load_icon, play
 
 
 LOG_PATH = os.path.expanduser("~/Library/Logs/Multi-Tofu.log")
+BUNDLE_ID = "fr.multitofu.app"
 # The lock belongs to a configuration, not to the machine. Two setups are two
 # instances, which is what the test rig needs and what a second config means.
 LOCK_PATH = os.path.splitext(CONFIG_PATH)[0] + ".lock"
@@ -67,6 +68,37 @@ def cursor_position():
     return loc.x, loc.y
 
 
+def open_accessibility_pane():
+    subprocess.run([
+        "open",
+        "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility",
+    ], capture_output=True)
+
+
+def bundle_path():
+    """Empty when running from source, which is the case the repair path has
+    to refuse: there is no bundle to reopen."""
+    from Foundation import NSBundle
+    path = NSBundle.mainBundle().bundlePath()
+    return path if path and path.endswith(".app") else ""
+
+
+def repair_accessibility():
+    """Drop the app's Accessibility record and come back.
+
+    A rebuilt app carries a new ad-hoc signature, so the row left in System
+    Settings looks switched on while macOS refuses the new binary. Removing
+    the record is the only way to make the system ask again.
+    """
+    app = bundle_path()
+    if not app:
+        return False
+    script = (f'sleep 1; /usr/bin/tccutil reset Accessibility {BUNDLE_ID} '
+              f'>/dev/null 2>&1; /usr/bin/open -a "{app}"')
+    subprocess.Popen(["/bin/sh", "-c", script], start_new_session=True)
+    return True
+
+
 class DosoftApp(NSObject):
     def init(self):
         self = objc.super(DosoftApp, self).init()
@@ -95,6 +127,7 @@ class DosoftApp(NSObject):
     def applicationDidFinishLaunching_(self, notification):
         if self.config.data.get("show_dock_icon"):
             NSApp.setActivationPolicy_(NSApplicationActivationPolicyRegular)
+        self._build_main_menu()
         self._build_status_item()
         self.refresh()
         trusted = accessibility_trusted()
@@ -105,13 +138,19 @@ class DosoftApp(NSObject):
             f"shortcuts={'on' if self.hotkeys_running else 'OFF'} | "
             f"dock_icon={bool(self.config.data.get('show_dock_icon'))} | "
             f"{len(self.scanner.accounts)} client(s)")
+        self._trusted = trusted
         if not trusted:
             # No blocking alert here. macOS shows its own prompt, and a modal
             # of ours would freeze the run loop so the grant could never be
             # picked up without quitting.
             request_accessibility()
-            self.trust_timer = NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(
-                2.0, self, "checkTrust:", None, True)
+        # The watcher runs for the whole session, in both directions. A grant
+        # can land later, and it can also go away: every rebuild gets a new
+        # ad-hoc signature, so the row in System Settings still looks on while
+        # the app is refused. Silently claiming to be ready in that state is
+        # the bug this poll exists to prevent.
+        self.trust_timer = NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(
+            2.0, self, "checkTrust:", None, True)
         if self.config.data.get("keep_clients_awake"):
             appnap.set_disabled(self.config, True)
         if loginitem.available():
@@ -145,34 +184,73 @@ class DosoftApp(NSObject):
             NSApp.setActivationPolicy_(NSApplicationActivationPolicyRegular)
 
     def openPrefsOnLaunch_(self, timer):
-        self.prefs.show()
+        from time import strftime
+        try:
+            self.prefs.show()
+            visible = bool(self.prefs.window and self.prefs.window.isVisible())
+            log(f"[{strftime('%Y-%m-%d %H:%M:%S')}] settings opened | visible={visible}")
+        except Exception as exc:
+            # a window that fails to build used to fail in silence, and the
+            # app just sat there looking like it had not started
+            log(f"[{strftime('%Y-%m-%d %H:%M:%S')}] settings failed to open | {exc!r}")
 
     def checkTrust_(self, timer):
-        """Switch the shortcuts on the moment permission appears, so flipping
-        the toggle in System Settings is enough. No relaunch."""
-        if not accessibility_trusted():
+        """Follow the permission in both directions, so flipping the toggle in
+        System Settings is enough. No relaunch."""
+        trusted = accessibility_trusted()
+        if trusted == getattr(self, "_trusted", None):
             return
-        timer.invalidate()
-        self.trust_timer = None
-        self.hotkeys_running = self.hotkeys.start()
+        self._trusted = trusted
+        if trusted:
+            self.hotkeys_running = self.hotkeys.start()
+        else:
+            self.hotkeys.stop()
+            self.hotkeys_running = False
         from time import strftime
-        log(f"[{strftime('%Y-%m-%d %H:%M:%S')}] accessibility granted | "
+        log(f"[{strftime('%Y-%m-%d %H:%M:%S')}] accessibility "
+            f"{'granted' if trusted else 'lost'} | "
             f"shortcuts={'on' if self.hotkeys_running else 'OFF'}")
+        self.rebuild_menu()
+        self._reload_prefs()
         self.refresh()
+
+    @objc.python_method
+    def _reload_prefs(self):
+        """The Settings window holds the status banner. Nothing else redraws
+        it, so anything that changes what it says has to say so."""
+        if self.prefs is not None and self.prefs.window is not None \
+                and self.prefs.window.isVisible():
+            self.prefs.reload()
 
     def applicationWillTerminate_(self, notification):
         self.hotkeys.stop()
-
-    @objc.python_method
-    def _warn_accessibility(self):
-        alert = NSAlert.alloc().init()
-        alert.setMessageText_(t("access_alert_title"))
-        alert.setInformativeText_(t("access_alert_body", name=APP_NAME))
-        alert.addButtonWithTitle_(t("alert_ok"))
-        NSApp.activateIgnoringOtherApps_(True)
-        alert.runModal()
+        # never leave someone with clients they cannot see because they quit
+        if self.config.data.get("hide_others"):
+            try:
+                self.scanner.unhide_all()
+            except Exception:
+                pass
 
     # ---------- status item ----------
+
+    @objc.python_method
+    def _build_main_menu(self):
+        """A menu bar app draws no menu bar, but the main menu is still where
+        AppKit looks for key equivalents. Without it Command Q does nothing and
+        the only way out is the status item, which is exactly the complaint."""
+        main = NSMenu.alloc().init()
+        app_item = NSMenuItem.alloc().init()
+        main.addItem_(app_item)
+        sub = NSMenu.alloc().init()
+        close = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
+            t("menu_close_window"), "performClose:", "w")
+        sub.addItem_(close)
+        sub.addItem_(NSMenuItem.separatorItem())
+        quit_item = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
+            t("menu_quit"), "terminate:", "q")
+        sub.addItem_(quit_item)
+        app_item.setSubmenu_(sub)
+        NSApp.setMainMenu_(main)
 
     @objc.python_method
     def _build_status_item(self):
@@ -339,14 +417,10 @@ class DosoftApp(NSObject):
 
     def openAccessibility_(self, sender):
         request_accessibility()
-        self._warn_accessibility()
-        subprocess.run([
-            "open",
-            "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility",
-        ], capture_output=True)
-        if self.trust_timer is None:
-            self.trust_timer = NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(
-                2.0, self, "checkTrust:", None, True)
+        open_accessibility_pane()
+        # the Settings window carries the banner and the repair button, and a
+        # sheet there lands in front instead of behind
+        self.prefs.show()
 
     def quitClients_(self, sender):
         """Ask every client to quit. Behind a confirmation on purpose, this is

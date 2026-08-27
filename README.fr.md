@@ -39,6 +39,9 @@ donc tout est réécrit sur l'API d'Accessibilité macOS, un CGEventTap et AppKi
   demande jamais s'il a démarré. Un clic pour désactiver.
 - **Une touche, une action.** Attribuer une touche déjà prise la libère chez
   l'autre action, plutôt que d'en laisser une qui ne se déclenche jamais.
+- **Seul le client où vous êtes.** Activez le masquage et tous les autres
+  clients disparaissent pendant que vous jouez celui du dessus. Ils continuent
+  de tourner et reviennent dès que vous passez dessus.
 
 ## Où sont enregistrés vos réglages
 

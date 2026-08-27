@@ -120,6 +120,27 @@ class Flow(NSObject):
         record(app.prefs.window is not None and app.prefs.window.isVisible(),
                "settings still alive after the switch")
         record(app.config.data["language"] == "fr", "language actually changed")
+
+        # the banner has to follow the permission, not the account list. It
+        # went stale once because only a change of clients redrew it.
+        import multitofu.accounts as accounts
+        real = accounts.accessibility_trusted
+        try:
+            accounts.accessibility_trusted = lambda: False
+            app.prefs._update_status()
+            red = app.prefs.status_label.stringValue()
+            shown = not app.prefs.fix_button.isHidden()
+            accounts.accessibility_trusted = lambda: True
+            app.prefs._update_status()
+            green = app.prefs.status_label.stringValue()
+        finally:
+            accounts.accessibility_trusted = real
+        record(red != green, "the banner follows the permission", green[:40])
+        record(shown and app.prefs.fix_button.isHidden(),
+               "the repair button only shows when access is off")
+        record(app.prefs.status_timer is not None,
+               "the status refreshes on its own while settings are open")
+
         total, passed = len(RESULTS), sum(1 for r in RESULTS if r)
         print(f"\n{passed}/{total} checks passed")
         NSApp.terminate_(self)
