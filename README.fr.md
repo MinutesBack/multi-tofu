@@ -35,8 +35,9 @@ donc tout est réécrit sur l'API d'Accessibilité macOS, un CGEventTap et AppKi
   et vous revenez où vous étiez, place dans la rotation comprise.
 - **Ordre au clavier.** Tapez un numéro pour placer un personnage, pratique
   quand l'ordre suit l'initiative et non l'ordre d'ouverture des clients.
-- **Ouvre sur vos réglages.** Lancer Multi-Tofu ouvre les réglages, on ne se
-  demande jamais s'il a démarré. Un clic pour désactiver.
+- **Reste discret.** Il ouvre les réglages la première fois pour l'installation,
+  puis se fait oublier dans la barre de menus. Une fois lancé il ne revient pas
+  au premier plan, même quand le Launcher Ankama le relance.
 - **Une touche, une action.** Attribuer une touche déjà prise la libère chez
   l'autre action, plutôt que d'en laisser une qui ne se déclenche jamais.
 - **Seul le client où vous êtes.** Activez le masquage et tous les autres

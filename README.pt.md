@@ -35,8 +35,9 @@ o AppKit.
   para onde estava, com sua posição na rotação intacta.
 - **Ordem por número.** Digite uma posição para colocar um personagem, útil
   quando a ordem segue a iniciativa e não a ordem em que você abriu os clientes.
-- **Abre onde você parou.** Abrir o Multi-Tofu mostra os ajustes, então nunca
-  parece que nada aconteceu. Um clique desliga isso.
+- **Fica fora do caminho.** Ele abre os ajustes na primeira vez para você
+  configurar e depois fica quieto na barra de menus. Uma vez rodando, não volta
+  para a frente, nem quando o Launcher da Ankama o reabre.
 - **Uma tecla, uma ação.** Atribuir uma tecla que outro atalho já tem libera ela
   lá, em vez de deixar uma ação que nunca dispara.
 - **Só o cliente em que você está.** Ligue a ocultação e os outros clientes

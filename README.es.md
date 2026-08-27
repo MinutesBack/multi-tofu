@@ -35,8 +35,9 @@ CGEventTap y AppKit.
   donde estabas, con tu posición en la rotación intacta.
 - **Orden por número.** Escribe una posición para colocar un personaje, útil
   cuando el orden sigue la iniciativa y no el orden en que abriste los clientes.
-- **Abre donde lo dejaste.** Abrir Multi-Tofu muestra los ajustes, así nunca
-  parece que no ha pasado nada. Un clic para desactivarlo.
+- **No molesta.** Abre los ajustes la primera vez para configurarlo y luego se
+  queda callado en la barra de menús. Una vez en marcha no vuelve a primer
+  plano, ni cuando el Launcher de Ankama lo reabre.
 - **Una tecla, una acción.** Asignar una tecla que ya tiene otro atajo se la
   quita a ese, en vez de dejar una acción que nunca se activa.
 - **Solo el cliente en el que estás.** Activa el ocultado y los demás clientes

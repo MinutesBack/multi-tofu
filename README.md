@@ -35,8 +35,9 @@ and AppKit.
   follows initiative rather than the order clients happened to open.
 - **Stays saved.** Order, teams, roles, leader and every shortcut are written to
   disk as you change them. Log out, come back tomorrow, it is all still there.
-- **Opens where you left it.** Launching Multi-Tofu opens Settings, so it never
-  looks like nothing happened. One click turns that off.
+- **Stays out of the way.** It opens Settings the first time so you can set it
+  up, then sits quietly in the menu bar. Once running it does not keep coming
+  to the front, even when the Ankama Launcher relaunches it.
 - **One key, one action.** Assigning a key another shortcut holds frees it
   there, rather than leaving two actions on one key where only one ever fires.
 - **Only the client you are on.** Switch on hiding and every other client
@@ -65,8 +66,11 @@ to their own directories on startup, and launchd can watch those.
 ./tools/watch_ankama.sh remove
 ```
 
-It starts the app in the background, so nothing steals your focus, and
-launching it twice is harmless because a second instance refuses to start.
+It starts the app in the background the first time the launcher writes, and
+does nothing on every write after that because the app is already running. So
+it comes up once when you open the Ankama Launcher and then stays out of your
+way, rather than flashing to the front every time the launcher touches its
+cache.
 
 ## Where your setup lives
 

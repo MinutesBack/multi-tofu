@@ -25,12 +25,9 @@ install)
   <key>Label</key><string>$LABEL</string>
   <key>ProgramArguments</key>
   <array>
-    <string>/usr/bin/open</string>
-    <string>-g</string>
-    <string>-a</string>
-    <string>$APP</string>
-    <string>--args</string>
-    <string>--background</string>
+    <string>/bin/sh</string>
+    <string>-c</string>
+    <string>pgrep -f "Multi-Tofu.app/Contents/MacOS" >/dev/null || /usr/bin/open -g -a "$APP" --args --background</string>
   </array>
   <key>WatchPaths</key>
   <array>
@@ -38,7 +35,7 @@ install)
     <string>$HOME/Library/Application Support/Ankama</string>
     <string>$HOME/Library/Preferences/com.Ankama.Dofus.plist</string>
   </array>
-  <key>ThrottleInterval</key><integer>30</integer>
+  <key>ThrottleInterval</key><integer>60</integer>
   <key>RunAtLoad</key><false/>
   <key>StandardOutPath</key><string>/tmp/multitofu-watch.log</string>
   <key>StandardErrorPath</key><string>/tmp/multitofu-watch.log</string>

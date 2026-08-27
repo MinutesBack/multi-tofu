@@ -161,9 +161,13 @@ class DosoftApp(NSObject):
         self.scan_timer = NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(
             interval, self, "tick:", None, True)
         self.rebuild_menu()
-        if self.config.data.get("open_settings_on_launch", True) \
-                and "--background" not in sys.argv:
-            # a menu bar app that opens to nothing at all reads as broken
+        # Open Settings on launch only while setup is unfinished, or if you
+        # explicitly asked for it. Once Accessibility is granted the app is set
+        # up, so it sits quietly in the menu bar instead of reopening every
+        # time the launcher relaunches it. A background launch never opens it.
+        user_launch = "--background" not in sys.argv
+        want_settings = (not trusted) or self.config.data.get("open_settings_on_launch", False)
+        if user_launch and want_settings:
             NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(
                 0.6, self, "openPrefsOnLaunch:", None, False)
         if getattr(self, "_pending_menubar_warning", False) \
