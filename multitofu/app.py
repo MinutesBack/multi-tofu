@@ -603,7 +603,10 @@ class DosoftApp(NSObject):
         if not self.hotkeys.modifier_down:
             return
         cycle = self.scanner.cycle_list()
-        if len(cycle) < 2:
+        # show it with a single client too. One segment is not useful in a
+        # fight, but it lets you see the wheel works, and it stops the wheel
+        # from silently doing nothing while you test with one account open.
+        if not cycle:
             return
         self._sync_index()
         current = cycle[self.current_idx]["name"] if self.current_idx < len(cycle) else None

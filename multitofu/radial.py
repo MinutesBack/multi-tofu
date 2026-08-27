@@ -320,7 +320,9 @@ class Wheel:
         self.view = view
 
     def show(self, cg_x, cg_y, entries, current_name=None):
-        if len(entries) < 2:
+        # one entry draws a single full-circle segment; zero would divide by
+        # zero in the angle maths, so that is the only case we refuse
+        if not entries:
             return False
         self._ensure_panel()
         self.entries = entries
