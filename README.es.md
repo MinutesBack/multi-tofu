@@ -45,7 +45,7 @@ sin personaje. Pon `login_windows_in_rotation` en true si las quieres incluir.
 ## Instalación
 
 Descarga el `.zip` desde la página de
-[Releases](https://github.com/JMax92/multi-tofu/releases), descomprímelo y
+[Releases](https://github.com/MinutesBack/multi-tofu/releases), descomprímelo y
 arrastra `Multi-Tofu.app` a Aplicaciones.
 
 La app no está firmada con una cuenta de desarrollador de Apple, así que la
@@ -84,7 +84,7 @@ tecla física, así que sobreviven a un cambio entre AZERTY y QWERTY.
 ## Desde el código
 
 ```
-git clone https://github.com/JMax92/multi-tofu.git
+git clone https://github.com/MinutesBack/multi-tofu.git
 cd multi-tofu
 python3 -m venv .venv
 ./.venv/bin/pip install -r requirements.txt

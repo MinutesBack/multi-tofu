@@ -44,7 +44,7 @@ F1 para que uma tecla nunca leve você a uma janela sem personagem. Coloque
 ## Instalação
 
 Baixe o `.zip` na página de
-[Releases](https://github.com/JMax92/multi-tofu/releases), descompacte e
+[Releases](https://github.com/MinutesBack/multi-tofu/releases), descompacte e
 arraste `Multi-Tofu.app` para Aplicativos.
 
 O app não é assinado com uma conta de desenvolvedor da Apple, então na primeira
@@ -83,7 +83,7 @@ física, então sobrevivem a uma troca entre AZERTY e QWERTY.
 ## A partir do código
 
 ```
-git clone https://github.com/JMax92/multi-tofu.git
+git clone https://github.com/MinutesBack/multi-tofu.git
 cd multi-tofu
 python3 -m venv .venv
 ./.venv/bin/pip install -r requirements.txt

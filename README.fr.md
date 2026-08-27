@@ -46,7 +46,7 @@ envoie jamais sur une fenêtre sans personnage. Passez
 ## Installation
 
 Téléchargez le `.zip` depuis la page
-[Releases](https://github.com/JMax92/multi-tofu/releases), décompressez-le et
+[Releases](https://github.com/MinutesBack/multi-tofu/releases), décompressez-le et
 glissez `Multi-Tofu.app` dans Applications.
 
 L'app n'est pas signée par un compte développeur Apple, donc au premier
@@ -86,7 +86,7 @@ codes de touches physiques, ils survivent donc à un passage AZERTY vers QWERTY.
 ## Depuis les sources
 
 ```
-git clone https://github.com/JMax92/multi-tofu.git
+git clone https://github.com/MinutesBack/multi-tofu.git
 cd multi-tofu
 python3 -m venv .venv
 ./.venv/bin/pip install -r requirements.txt

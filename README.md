@@ -43,7 +43,7 @@ no character. Set `login_windows_in_rotation` to true if you want them included.
 ## Install
 
 Download the `.zip` from
-[Releases](https://github.com/JMax92/multi-tofu/releases), unzip it, drag
+[Releases](https://github.com/MinutesBack/multi-tofu/releases), unzip it, drag
 `Multi-Tofu.app` into Applications. No toolchain, no Python, no terminal.
 
 The app is not signed with an Apple developer account, so the first time you
