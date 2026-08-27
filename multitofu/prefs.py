@@ -66,6 +66,7 @@ class PrefsController(NSObject):
     # ---------- window ----------
 
     def show(self):
+        self.app.hotkeys.capture = None
         if self.window is None:
             self._build()
         self.reload()
@@ -309,12 +310,26 @@ class PrefsController(NSObject):
         button_ref.setTitle_(t("press_a_key"))
 
         def done(keycode, flags):
+            # hand the work to the next run loop pass, never do it inside the
+            # event tap callback
             apply_fn({"keycode": keycode, "flags": int(flags)})
             self.app.config.save()
-            self.reload()
+            NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(
+                0, self, "reloadLater:", None, False)
 
         self.app.hotkeys.capture = done
         del previous
+
+    def reloadLater_(self, timer):
+        self.reload()
+
+    @objc.python_method
+    def _cancel_capture(self):
+        """Touching any other control abandons a recording in progress. A
+        capture that outlives the control it belongs to fires into a button
+        that no longer exists."""
+        if self.app.hotkeys.capture is not None:
+            self.app.hotkeys.capture = None
 
     def recordGlobal_(self, sender):
         keys = ["next", "prev", "leader", "refresh", "prefs"]
@@ -348,6 +363,7 @@ class PrefsController(NSObject):
 
 
     def teamChanged_(self, sender):
+        self._cancel_capture()
         accounts = self.app.scanner.accounts
         if sender.tag() >= len(accounts):
             return
@@ -362,6 +378,7 @@ class PrefsController(NSObject):
 
 
     def leaderChanged_(self, sender):
+        self._cancel_capture()
         title = sender.titleOfSelectedItem()
         self.app.config.data["leader_name"] = ("" if title == t("option_none")
                                                else title)
@@ -370,6 +387,7 @@ class PrefsController(NSObject):
 
 
     def positionChanged_(self, sender):
+        self._cancel_capture()
         accounts = self.app.scanner.accounts
         if sender.tag() >= len(accounts):
             return
@@ -405,6 +423,7 @@ class PrefsController(NSObject):
         self.app.refresh()
 
     def roleChanged_(self, sender):
+        self._cancel_capture()
         accounts = self.app.scanner.accounts
         if sender.tag() >= len(accounts):
             return
@@ -415,11 +434,13 @@ class PrefsController(NSObject):
         self.app.config.save()
 
     def peekTargetChanged_(self, sender):
+        self._cancel_capture()
         self.app.config.data["peek_target"] = \
             self.peek_targets[sender.indexOfSelectedItem()]
         self.app.config.save()
 
     def awakeToggled_(self, sender):
+        self._cancel_capture()
         wanted = bool(sender.state())
         appnap.set_disabled(self.app.config, wanted)
         self.app.config.data["keep_clients_awake"] = wanted
@@ -427,6 +448,7 @@ class PrefsController(NSObject):
         sender.setState_(1 if appnap.is_disabled(self.app.config) else 0)
 
     def languageChanged_(self, sender):
+        self._cancel_capture()
         code = self.language_codes[sender.indexOfSelectedItem()]
         self.app.config.data["language"] = code
         self.app.config.save()
@@ -437,6 +459,7 @@ class PrefsController(NSObject):
             0, self, "rebuildWindow:", None, False)
 
     def rebuildWindow_(self, timer):
+        self.app.hotkeys.capture = None
         if self.window is not None:
             self.window.orderOut_(None)
         self.window = None
@@ -445,11 +468,13 @@ class PrefsController(NSObject):
         self.show()
 
     def wheelModifierChanged_(self, sender):
+        self._cancel_capture()
         self.app.config.data["wheel_modifier"] = sender.titleOfSelectedItem()
         self.app.config.save()
 
 
     def wheelToggled_(self, sender):
+        self._cancel_capture()
         self.app.config.data["wheel_enabled"] = bool(sender.state())
         self.app.config.save()
 
@@ -482,5 +507,6 @@ class PrefsController(NSObject):
 
 
     def rescan_(self, sender):
+        self._cancel_capture()
         self.app.refresh()
 

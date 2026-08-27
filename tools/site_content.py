@@ -4,7 +4,7 @@ SITE = "https://minutesback.github.io/multi-tofu/"
 REPO = "https://github.com/MinutesBack/multi-tofu"
 RELEASES = REPO + "/releases"
 DOWNLOAD = REPO + "/releases/latest"
-VERSION = "0.2.0"
+VERSION = "0.2.1"
 
 LANGS = ["en", "fr", "es", "pt"]
 LANG_NAMES = {"en": "English", "fr": "Français", "es": "Español", "pt": "Português"}

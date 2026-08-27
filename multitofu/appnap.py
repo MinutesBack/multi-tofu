@@ -1,14 +1,20 @@
 """Keep backgrounded Dofus clients out of App Nap.
 
-macOS throttles timers and I/O for apps with no visible windows, which is
+macOS throttles timers and I/O for apps with no visible window, which is
 exactly what every client except the one in front looks like. A process cannot
 lift that for another process at runtime, but the frameworks read
 NSAppSleepDisabled out of the target app's own preference domain at launch, so
 writing it there is the documented lever.
 
-Takes effect the next time a client starts.
+Everything here uses CFPreferences in process. An earlier version shelled out
+to `defaults`, which froze the app: the read ran inside the event tap callback
+while recording a shortcut, and a blocking subprocess there stalls the whole
+main run loop.
 """
-import subprocess
+from Foundation import (
+    CFPreferencesAppSynchronize, CFPreferencesCopyAppValue,
+    CFPreferencesSetAppValue,
+)
 
 KEY = "NSAppSleepDisabled"
 
@@ -24,27 +30,21 @@ def is_disabled(config):
         return False
     for domain in domains:
         try:
-            out = subprocess.run(["defaults", "read", domain, KEY],
-                                 capture_output=True, text=True, timeout=5)
-        except (OSError, subprocess.SubprocessError):
+            value = CFPreferencesCopyAppValue(KEY, domain)
+        except Exception:
             return False
-        if out.returncode != 0 or out.stdout.strip() not in ("1", "YES", "true"):
+        if not value:
             return False
     return True
 
 
 def set_disabled(config, enabled):
-    """Write or remove the opt-out for every watched client domain."""
+    """Write or clear the opt-out for every watched client domain."""
     ok = True
     for domain in _domains(config):
-        args = (["defaults", "write", domain, KEY, "-bool", "YES"] if enabled
-                else ["defaults", "delete", domain, KEY])
         try:
-            result = subprocess.run(args, capture_output=True, text=True, timeout=5)
-        except (OSError, subprocess.SubprocessError):
-            ok = False
-            continue
-        # deleting a key that was never there is not a failure
-        if result.returncode != 0 and enabled:
+            CFPreferencesSetAppValue(KEY, True if enabled else None, domain)
+            CFPreferencesAppSynchronize(domain)
+        except Exception:
             ok = False
     return ok
