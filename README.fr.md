@@ -29,6 +29,26 @@ donc tout est réécrit sur l'API d'Accessibilité macOS, un CGEventTap et AppKi
   rotation, ouvrez les réglages.
 - **Quatre langues.** Anglais, français, espagnol et portugais, calées sur votre
   système au premier lancement et modifiables à tout moment.
+- **Rôles.** Marquez chaque personnage et la roue colore sa part en conséquence.
+  Au-delà de cinq clients, on lit une couleur plus vite que six noms.
+- **Coup d'oeil.** Maintenez une touche pour regarder un autre client, relâchez
+  et vous revenez où vous étiez, place dans la rotation comprise.
+- **Ordre au clavier.** Tapez un numéro pour placer un personnage, pratique
+  quand l'ordre suit l'initiative et non l'ordre d'ouverture des clients.
+
+## Où sont enregistrés vos réglages
+
+Tout ce que vous configurez est écrit dans
+`~/Library/Application Support/Multi-Tofu/config.json` dès que vous le changez,
+indexé par nom de personnage. Ordre de rotation, équipes, rôles, chef, touches
+directes et tous les raccourcis. Fermez les clients, fermez l'app, revenez une
+semaine plus tard, connectez les mêmes personnages et tout est comme vous
+l'aviez laissé.
+
+Les icônes de classe sont lues dans le jeu, pas devinées. Le titre de la fenêtre
+porte la classe, donc un Eniripsa affiche l'icône Eniripsa sans rien lui dire.
+La dernière classe connue est mémorisée par personnage, donc un client encore en
+chargement affiche déjà la bonne.
 
 ## Le nom des personnages
 
@@ -78,6 +98,7 @@ détecte et vous propose une icône dans le Dock à la place.
 | Aller au chef | F3 |
 | Rechercher les fenêtres | F4 |
 | Roue des personnages | maintenir Option |
+| Coup d'oeil sur un autre client | maintenir ² |
 | Ouvrir les réglages | Control + F1 |
 
 Tout est modifiable dans les réglages. Les raccourcis sont enregistrés comme

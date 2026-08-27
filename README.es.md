@@ -29,6 +29,25 @@ CGEventTap y AppKit.
   rotación, abre los ajustes.
 - **Cuatro idiomas.** Inglés, francés, español y portugués, según tu sistema en
   el primer arranque y cambiables en cualquier momento.
+- **Roles.** Marca cada personaje y la rueda colorea su porción según el rol.
+  Pasados cinco clientes, un color se lee más rápido que seis nombres.
+- **Vistazo.** Mantén una tecla para mirar otro cliente, suéltala y vuelves
+  donde estabas, con tu posición en la rotación intacta.
+- **Orden por número.** Escribe una posición para colocar un personaje, útil
+  cuando el orden sigue la iniciativa y no el orden en que abriste los clientes.
+
+## Dónde se guardan tus ajustes
+
+Todo lo que configuras se escribe en
+`~/Library/Application Support/Multi-Tofu/config.json` en cuanto lo cambias,
+indexado por nombre de personaje. Orden de rotación, equipos, roles, líder,
+teclas directas y todos los atajos. Cierra los clientes, cierra la app, vuelve
+una semana después, conecta los mismos personajes y está tal cual lo dejaste.
+
+Los iconos de clase se leen del juego, no se adivinan. El título de la ventana
+lleva la clase, así que un Eniripsa muestra el icono de Eniripsa sin que le
+digas nada. La última clase conocida se recuerda por personaje, así que un
+cliente que aún está cargando ya muestra la correcta.
 
 ## Los nombres de los personajes
 
@@ -76,6 +95,7 @@ ofrece un icono en el Dock.
 | Ir al líder | F3 |
 | Buscar ventanas | F4 |
 | Rueda de personajes | mantener Opción |
+| Vistazo a otro cliente | mantener ` |
 | Abrir ajustes | Control + F1 |
 
 Todo se puede cambiar en los ajustes. Los atajos se guardan como códigos de

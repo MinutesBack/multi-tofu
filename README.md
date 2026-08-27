@@ -138,6 +138,7 @@ Check what it can see at any time:
 | Focus leader | F3 |
 | Rescan windows | F4 |
 | Character wheel | hold Option |
+| Peek at another client | hold ` |
 
 Change any of them in Preferences. Binds are stored as physical keycodes, so
 they hold up if you switch between AZERTY and QWERTY.

@@ -29,6 +29,25 @@ o AppKit.
   rotação, abra os ajustes.
 - **Quatro idiomas.** Inglês, francês, espanhol e português, seguindo o sistema
   no primeiro início e trocáveis a qualquer momento.
+- **Funções.** Marque cada personagem e a roda colore a fatia dele conforme a
+  função. Passando de cinco clientes, uma cor se lê mais rápido que seis nomes.
+- **Espiada.** Segure uma tecla para olhar outro cliente, solte e você volta
+  para onde estava, com sua posição na rotação intacta.
+- **Ordem por número.** Digite uma posição para colocar um personagem, útil
+  quando a ordem segue a iniciativa e não a ordem em que você abriu os clientes.
+
+## Onde ficam seus ajustes
+
+Tudo que você configura é gravado em
+`~/Library/Application Support/Multi-Tofu/config.json` assim que você muda,
+indexado por nome de personagem. Ordem da rotação, times, funções, líder, teclas
+diretas e todos os atalhos. Feche os clientes, feche o app, volte uma semana
+depois, entre com os mesmos personagens e está do jeito que você deixou.
+
+Os ícones de classe são lidos do jogo, não adivinhados. O título da janela
+carrega a classe, então um Eniripsa mostra o ícone de Eniripsa sem você dizer
+nada. A última classe conhecida fica guardada por personagem, então um cliente
+ainda carregando já mostra a certa.
 
 ## Os nomes dos personagens
 
@@ -75,6 +94,7 @@ oferece um ícone no Dock.
 | Ir para o líder | F3 |
 | Procurar janelas | F4 |
 | Roda de personagens | segurar Option |
+| Espiada em outro cliente | segurar ` |
 | Abrir ajustes | Control + F1 |
 
 Tudo pode ser trocado nos ajustes. Os atalhos são gravados como códigos de tecla
