@@ -10,10 +10,15 @@ from AppKit import (
 from Foundation import NSObject, NSTimer
 
 from . import appnap
-from .i18n import SUPPORTED, language_name, set_language, t, team_display
+from .i18n import (STRINGS, SUPPORTED, language_name, set_language, t,
+                    team_display)
 from .roles import ROLE_KEYS
-from .keys import MODIFIER_MASKS, describe
+from .keys import MODIFIER_MASKS, conflicts, describe, same_bind
 from .radial import load_icon
+
+# The order of the global shortcut buttons. The record handler indexes into
+# this by button tag, so it must never be written down twice.
+BIND_ORDER = ["next", "prev", "leader", "refresh", "prefs", "peek"]
 
 ROW_HEIGHT = 34
 HEADER_HEIGHT = 118
@@ -90,9 +95,7 @@ class PrefsController(NSObject):
         content.addSubview_(self.status_label)
 
         content.addSubview_(label(t("global_shortcuts"), 20, 46, 260, 20, bold=True, size=13))
-        specs = [("next", t("bind_next")), ("prev", t("bind_prev")),
-                 ("leader", t("bind_leader")), ("refresh", t("bind_refresh")),
-                 ("prefs", t("bind_prefs")), ("peek", t("bind_peek"))]
+        specs = [(key, t("bind_" + key)) for key in BIND_ORDER]
         for i, (key, title) in enumerate(specs):
             x = 20 + (i % 2) * 430
             y = 74 + (i // 2) * 30
@@ -156,6 +159,13 @@ class PrefsController(NSObject):
         content.addSubview_(label(t("awake_help"), 340, 262, WINDOW_W - 370, 34,
                                   size=10, color=NSColor.secondaryLabelColor()))
 
+        self.launch_check = NSButton.alloc().initWithFrame_(NSMakeRect(20, 272, 420, 24))
+        self.launch_check.setButtonType_(NSSwitchButton)
+        self.launch_check.setTitle_(t("open_on_launch"))
+        self.launch_check.setTarget_(self)
+        self.launch_check.setAction_("launchToggled:")
+        content.addSubview_(self.launch_check)
+
         content.addSubview_(label(t("characters"), 20, 306, 200, 20, bold=True, size=13))
         muted = NSColor.secondaryLabelColor()
         for text, col_x, width in [(t("col_order"), 4, 86), (t("col_on"), 96, 40),
@@ -189,6 +199,8 @@ class PrefsController(NSObject):
         if target in self.peek_targets:
             self.peek_popup.selectItemAtIndex_(self.peek_targets.index(target))
         self.awake_check.setState_(1 if appnap.is_disabled(self.app.config) else 0)
+        self.launch_check.setState_(
+            1 if cfg.get("open_settings_on_launch", True) else 0)
         code = cfg.get("language", "auto")
         if code in self.language_codes:
             self.language_popup.selectItemAtIndex_(self.language_codes.index(code))
@@ -288,9 +300,16 @@ class PrefsController(NSObject):
         from .accounts import accessibility_trusted
         trusted = accessibility_trusted()
         count = len(self.app.scanner.accounts)
+        clashes = conflicts(self.app.config.data.get("binds", {}),
+                            self.app.config.data.get("character_binds", {}))
         if not trusted:
             text = t("status_no_access")
             colour = NSColor.systemRedColor()
+        elif clashes:
+            names = ", ".join(t("bind_" + n) if ("bind_" + n) in STRINGS else n
+                              for n in clashes[0])
+            text = t("status_conflict", actions=names)
+            colour = NSColor.systemOrangeColor()
         elif count == 0:
             text = t("status_no_client")
             colour = NSColor.secondaryLabelColor()
@@ -312,7 +331,9 @@ class PrefsController(NSObject):
         def done(keycode, flags):
             # hand the work to the next run loop pass, never do it inside the
             # event tap callback
-            apply_fn({"keycode": keycode, "flags": int(flags)})
+            bind = {"keycode": keycode, "flags": int(flags)}
+            self._release_elsewhere(bind)
+            apply_fn(bind)
             self.app.config.save()
             NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(
                 0, self, "reloadLater:", None, False)
@@ -324,6 +345,17 @@ class PrefsController(NSObject):
         self.reload()
 
     @objc.python_method
+    def _release_elsewhere(self, bind):
+        """One key, one action. Whoever held it loses it."""
+        cfg = self.app.config.data
+        for name, existing in list(cfg.get("binds", {}).items()):
+            if same_bind(existing, bind):
+                cfg["binds"][name] = {"keycode": None, "flags": 0}
+        for name, existing in list(cfg.get("character_binds", {}).items()):
+            if same_bind(existing, bind):
+                cfg["character_binds"].pop(name, None)
+
+    @objc.python_method
     def _cancel_capture(self):
         """Touching any other control abandons a recording in progress. A
         capture that outlives the control it belongs to fires into a button
@@ -332,8 +364,10 @@ class PrefsController(NSObject):
             self.app.hotkeys.capture = None
 
     def recordGlobal_(self, sender):
-        keys = ["next", "prev", "leader", "refresh", "prefs"]
-        key = keys[sender.tag()]
+        index = sender.tag()
+        if not (0 <= index < len(BIND_ORDER)):
+            return
+        key = BIND_ORDER[index]
 
         def apply(bind):
             self.app.config.data["binds"][key] = bind
@@ -437,6 +471,11 @@ class PrefsController(NSObject):
         self._cancel_capture()
         self.app.config.data["peek_target"] = \
             self.peek_targets[sender.indexOfSelectedItem()]
+        self.app.config.save()
+
+    def launchToggled_(self, sender):
+        self._cancel_capture()
+        self.app.config.data["open_settings_on_launch"] = bool(sender.state())
         self.app.config.save()
 
     def awakeToggled_(self, sender):

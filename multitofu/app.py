@@ -116,6 +116,10 @@ class DosoftApp(NSObject):
         self.scan_timer = NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(
             interval, self, "tick:", None, True)
         self.rebuild_menu()
+        if self.config.data.get("open_settings_on_launch", True):
+            # a menu bar app that opens to nothing at all reads as broken
+            NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(
+                0.6, self, "openPrefsOnLaunch:", None, False)
         if getattr(self, "_pending_menubar_warning", False) \
                 and not os.environ.get("MULTITOFU_QUIET"):
             self._warn_menubar_full()
@@ -132,6 +136,9 @@ class DosoftApp(NSObject):
             self.config.data["show_dock_icon"] = True
             self.config.save()
             NSApp.setActivationPolicy_(NSApplicationActivationPolicyRegular)
+
+    def openPrefsOnLaunch_(self, timer):
+        self.prefs.show()
 
     def checkTrust_(self, timer):
         """Switch the shortcuts on the moment permission appears, so flipping

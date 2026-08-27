@@ -173,6 +173,12 @@ STRINGS = {
     },
 
     # status line
+    "status_conflict": {
+        "en": "{actions} share the same key. Only one of them will ever fire.",
+        "fr": "{actions} partagent la même touche. Un seul des deux se déclenchera.",
+        "es": "{actions} comparten la misma tecla. Solo uno de ellos se activará.",
+        "pt": "{actions} compartilham a mesma tecla. Só um deles vai disparar.",
+    },
     "status_no_access": {
         "en": "Accessibility is off, so nothing works yet. System Settings > "
               "Privacy & Security > Accessibility.",
@@ -306,6 +312,12 @@ STRINGS = {
     "peek_target_prev": {"en": "Previous", "fr": "Le précédent", "es": "El anterior", "pt": "O anterior"},
 
     # app nap
+    "open_on_launch": {
+        "en": "Open this window when Multi-Tofu starts",
+        "fr": "Ouvrir cette fenêtre au démarrage de Multi-Tofu",
+        "es": "Abrir esta ventana al iniciar Multi-Tofu",
+        "pt": "Abrir esta janela ao iniciar o Multi-Tofu",
+    },
     "awake_label": {
         "en": "Keep background clients awake",
         "fr": "Garder les clients en arrière-plan actifs",

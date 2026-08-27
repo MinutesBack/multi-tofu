@@ -70,6 +70,26 @@ def describe(bind):
     return " + ".join(parts)
 
 
+def same_bind(a, b):
+    if not a or not b:
+        return False
+    if a.get("keycode") is None or b.get("keycode") is None:
+        return False
+    return (a["keycode"] == b["keycode"]
+            and clean_flags(a.get("flags", 0)) == clean_flags(b.get("flags", 0)))
+
+
+def conflicts(binds, character_binds=None):
+    """Groups of action names that answer to the same key."""
+    seen = {}
+    for name, bind in list(binds.items()) + list((character_binds or {}).items()):
+        if not bind or bind.get("keycode") is None:
+            continue
+        key = (bind["keycode"], clean_flags(bind.get("flags", 0)))
+        seen.setdefault(key, []).append(name)
+    return [names for names in seen.values() if len(names) > 1]
+
+
 def matches(bind, keycode, flags):
     if not bind or bind.get("keycode") is None:
         return False

@@ -49,9 +49,9 @@ class Flow(NSObject):
         button = app.prefs.global_buttons["next"]
         app.prefs._capture(button, lambda bind: app.config.data["binds"].__setitem__("next", bind))
         record(app.hotkeys.capture is not None, "capture armed")
+        before = TICKS[0]
 
         # the tap would call this synchronously, so time it as the tap sees it
-        before = TICKS[0]
         started = time.time()
         app.hotkeys.capture(99, 0)
         elapsed = (time.time() - started) * 1000
@@ -59,6 +59,29 @@ class Flow(NSObject):
                f"{elapsed:.1f}ms inside the tap callback")
         record(app.config.data["binds"]["next"]["keycode"] == 99,
                "the new shortcut is stored")
+
+        # every record button must map to a real shortcut. A hardcoded list
+        # that had drifted out of sync with the buttons is what froze the app
+        # when the peek button was clicked.
+        from multitofu.prefs import BIND_ORDER
+        record(len(app.prefs.global_buttons) == len(BIND_ORDER),
+               "a button per shortcut",
+               f"{len(app.prefs.global_buttons)} buttons, {len(BIND_ORDER)} shortcuts")
+        broken = []
+        for index, key in enumerate(BIND_ORDER):
+            app.hotkeys.capture = None
+            fake = app.prefs.global_buttons[key]
+            fake.setTag_(index)
+            try:
+                app.prefs.recordGlobal_(fake)
+            except Exception as exc:
+                broken.append(f"{key}: {exc}")
+                continue
+            if app.hotkeys.capture is None:
+                broken.append(f"{key}: nothing armed")
+        record(not broken, "every record button arms a capture", "; ".join(broken))
+        app.hotkeys.capture = None
+        app.prefs._capture(button, lambda bind: app.config.data["binds"].__setitem__("next", bind))
 
         self.before_ticks = before
         NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(
@@ -82,6 +105,18 @@ class Flow(NSObject):
 
     def finish_(self, timer):
         app = self.app
+
+        # one key, one action. Two actions on one key means one of them
+        # silently never fires.
+        from multitofu.keys import conflicts
+        app.config.data["binds"]["next"] = {"keycode": 123, "flags": 1048576}
+        app.config.data["binds"]["prev"] = {"keycode": 123, "flags": 1048576}
+        record(bool(conflicts(app.config.data["binds"])), "a clash is detected")
+        app.prefs._release_elsewhere({"keycode": 123, "flags": 1048576})
+        app.config.data["binds"]["next"] = {"keycode": 123, "flags": 1048576}
+        record(not conflicts(app.config.data["binds"]),
+               "taking a key frees it from the other action",
+               f"prev is now {app.config.data['binds']['prev']}")
         record(app.prefs.window is not None and app.prefs.window.isVisible(),
                "settings still alive after the switch")
         record(app.config.data["language"] == "fr", "language actually changed")

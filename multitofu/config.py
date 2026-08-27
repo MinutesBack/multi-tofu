@@ -48,6 +48,8 @@ DEFAULTS = {
     "scan_interval": 4.0,
     # Switch on when the menu bar is too full to show the status item.
     "show_dock_icon": False,
+    # opening a menu bar app that shows nothing looks like it failed to start
+    "open_settings_on_launch": True,
     # auto, en, fr, es or pt
     "language": "auto",
 }
