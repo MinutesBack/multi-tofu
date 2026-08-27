@@ -13,6 +13,7 @@ cd "$ROOT"
   --osx-bundle-identifier fr.multitofu.app \
   --add-data "$ROOT/multitofu/assets:multitofu/assets" \
   --icon "$ROOT/build/MultiTofu.icns" \
+  --target-arch universal2 \
   --distpath "$ROOT/dist" --workpath "$ROOT/build/pyinstaller" \
   --specpath "$ROOT/build" \
   launcher.py
@@ -25,8 +26,10 @@ PLIST="$APP/Contents/Info.plist"
   || /usr/libexec/PlistBuddy -c "Set :LSUIElement true" "$PLIST"
 /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString 0.1.0" "$PLIST" 2>/dev/null || true
 
-# strip extended attributes, codesign refuses to sign over them
+# strip extended attributes and AppleDouble files, codesign refuses to sign
+# over com.apple.FinderInfo and friends
 xattr -cr "$APP"
+find "$APP" -name "._*" -delete 2>/dev/null || true
 
 # a stable ad-hoc identity keeps the Accessibility grant across rebuilds
 codesign --force --deep --sign - --identifier fr.multitofu.app "$APP"
@@ -39,9 +42,9 @@ if [[ "$1" == "--install" ]]; then
   rm -rf "/Applications/Multi-Tofu.app"
   cp -R "$APP" "/Applications/Multi-Tofu.app"
   xattr -cr "/Applications/Multi-Tofu.app"
+  find "/Applications/Multi-Tofu.app" -name "._*" -delete 2>/dev/null || true
   codesign --force --deep --sign - --identifier fr.multitofu.app "/Applications/Multi-Tofu.app"
   # leave exactly one launchable copy on disk, two is how you end up granting
   # permission to the wrong one
-  rm -rf "$ROOT/dist"
   echo "installed /Applications/Multi-Tofu.app"
 fi

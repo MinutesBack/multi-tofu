@@ -3,6 +3,8 @@
 A Dofus multi-account window switcher for macOS. Instant switch, a character
 wheel, team split, and per-character keys, for Dofus 3 (Unity).
 
+**English** · **[Français](README.fr.md)** · **[Español](README.es.md)** · **[Português](README.pt.md)**
+
 An independent macOS port of [Dosoft](https://www.dosoft.fr), which is Windows
 only. None of the Windows code carries over, since it is built on the Win32 API,
 so this is a fresh implementation on the macOS Accessibility API, a CGEventTap
@@ -40,15 +42,32 @@ no character. Set `login_windows_in_rotation` to true if you want them included.
 
 ## Install
 
+Download the `.zip` from
+[Releases](https://github.com/JMax92/multi-tofu/releases), unzip it, drag
+`Multi-Tofu.app` into Applications. No toolchain, no Python, no terminal.
+
+The app is not signed with an Apple developer account, so the first time you
+open it, right click the icon and choose **Open**, then confirm. If macOS still
+refuses, go to System Settings > Privacy & Security and click **Open Anyway**.
+
+Universal binary, runs on Apple Silicon and Intel.
+
+### Accessibility permission
+
+On first launch macOS asks for Accessibility. Multi-Tofu needs it to read Dofus
+window titles and to listen for your shortcuts.
+
+System Settings > Privacy & Security > Accessibility, switch Multi-Tofu on. No
+need to quit, the shortcuts come on by themselves within a couple of seconds.
+
+If you rebuild from source later, macOS drops the grant because the signature
+changed. Run `tccutil reset Accessibility fr.multitofu.app` and approve again.
+
+### Build it yourself instead
+
 ```
 ./tools/build_app.sh --install
-open /Applications
 ```
-
-Launch **Multi-Tofu** from Spotlight or Applications. First launch asks for
-Accessibility. Grant it to Multi-Tofu itself, then quit and relaunch. The bundle
-is ad-hoc signed with a fixed identifier, so rebuilding does not cost you the
-permission.
 
 ## Where the interface is
 
@@ -174,6 +193,18 @@ a skipped check rather than a failure, but the fewer of those the better.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md). It lists the macOS quirks that cost the
 most time to find, so read it before touching the focus or event tap code.
+
+## If you were looking for
+
+Dofus multi-account on Mac, Dofus multicompte Mac, Dofus multicuenta Mac, Dofus
+multiconta Mac, Dofus multiboxing macOS, a Mac alternative to Organizer or
+Dosoft, switching between several Dofus clients on macOS, an Ankama Launcher
+multi client window switcher, or a Dofus 3 Unity character switcher for a
+MacBook. This is that tool.
+
+It does not automate play. No bot, no packet reading, no broadcasting one input
+to several clients. It brings windows to the front and nothing else, which is
+what keeps it safe to use.
 
 ## Licence
 
