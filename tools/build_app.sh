@@ -31,8 +31,15 @@ PLIST="$APP/Contents/Info.plist"
 xattr -cr "$APP"
 find "$APP" -name "._*" -delete 2>/dev/null || true
 
-# a stable ad-hoc identity keeps the Accessibility grant across rebuilds
-codesign --force --deep --sign - --identifier fr.multitofu.app "$APP"
+# a stable ad-hoc identity keeps the Accessibility grant across rebuilds.
+# PlistBuddy and PyInstaller both leave extended attributes behind, and
+# codesign refuses to sign over them, so clean and retry once.
+if ! codesign --force --deep --sign - --identifier fr.multitofu.app "$APP" 2>/dev/null; then
+  xattr -cr "$APP"
+  find "$APP" -name "._*" -delete 2>/dev/null || true
+  codesign --force --deep --sign - --identifier fr.multitofu.app "$APP"
+fi
+codesign --verify --deep --strict "$APP" || { echo "signature is not valid"; exit 1; }
 codesign -dv "$APP" 2>&1 | head -3
 echo "built $APP"
 mkdir -p "$ROOT/dist"

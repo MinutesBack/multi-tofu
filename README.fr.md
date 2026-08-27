@@ -35,6 +35,10 @@ donc tout est réécrit sur l'API d'Accessibilité macOS, un CGEventTap et AppKi
   et vous revenez où vous étiez, place dans la rotation comprise.
 - **Ordre au clavier.** Tapez un numéro pour placer un personnage, pratique
   quand l'ordre suit l'initiative et non l'ordre d'ouverture des clients.
+- **Ouvre sur vos réglages.** Lancer Multi-Tofu ouvre les réglages, on ne se
+  demande jamais s'il a démarré. Un clic pour désactiver.
+- **Une touche, une action.** Attribuer une touche déjà prise la libère chez
+  l'autre action, plutôt que d'en laisser une qui ne se déclenche jamais.
 
 ## Où sont enregistrés vos réglages
 

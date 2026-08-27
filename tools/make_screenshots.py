@@ -19,16 +19,16 @@ from multitofu.radial import Wheel
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DOCS = os.path.join(ROOT, "docs")
 
-CAST = [("Account 1", "Iop", "Team 1"), ("Account 2", "Cra", "Team 1"),
-        ("Account 3", "Eniripsa", "Team 1"), ("Account 4", "Sacrieur", "Team 2"),
-        ("Account 5", "Xelor", "Team 2"), ("Account 6", "Sadida", "Team 2")]
+CAST = [("Account 1", "Iop", "Team 1", "damage"), ("Account 2", "Cra", "Team 1", "damage"),
+        ("Account 3", "Eniripsa", "Team 1", "healer"), ("Account 4", "Sacrieur", "Team 2", "tank"),
+        ("Account 5", "Xelor", "Team 2", "support"), ("Account 6", "Sadida", "Team 2", "scout")]
 
 
 def fake_accounts():
     return [Account({"name": n, "pid": 0, "window": None,
                      "title": f"{n} - {c} - 3.6.10.11 - Release",
                      "class_name": c, "slug": to_slug(c), "active": True,
-                     "team": t, "is_menu": False}) for n, c, t in CAST]
+                     "team": t, "role": r, "is_menu": False}) for n, c, t, r in CAST]
 
 
 def save_view(view, path):
@@ -42,7 +42,8 @@ def save_view(view, path):
 
 class Shots(NSObject):
     def wheel_(self, timer):
-        entries = [{"name": n, "slug": to_slug(c)} for n, c, _ in CAST]
+        entries = [{"name": n, "slug": to_slug(c), "role": r, "class_name": c}
+                   for n, c, _, r in CAST]
         wheel = Wheel(self.app.config)
         wheel._ensure_panel()
         wheel.entries = entries
@@ -57,7 +58,8 @@ class Shots(NSObject):
     def prefs_(self, timer):
         self.app.scan_timer and self.app.scan_timer.invalidate()
         self.app.scanner.accounts = fake_accounts()
-        self.app.config.data["leader_name"] = "Bakuryu"
+        self.app.config.data["leader_name"] = "Account 1"
+        self.app.config.data["roles"] = {n: r for n, _, _, r in CAST}
         self.app.prefs.show()
 
     def grabPrefs_(self, timer):

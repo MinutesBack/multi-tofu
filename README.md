@@ -35,6 +35,10 @@ and AppKit.
   follows initiative rather than the order clients happened to open.
 - **Stays saved.** Order, teams, roles, leader and every shortcut are written to
   disk as you change them. Log out, come back tomorrow, it is all still there.
+- **Opens where you left it.** Launching Multi-Tofu opens Settings, so it never
+  looks like nothing happened. One click turns that off.
+- **One key, one action.** Assigning a key another shortcut holds frees it
+  there, rather than leaving two actions on one key where only one ever fires.
 
 ## Where your setup lives
 

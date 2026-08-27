@@ -168,8 +168,8 @@ class PrefsController(NSObject):
 
         content.addSubview_(label(t("characters"), 20, 306, 200, 20, bold=True, size=13))
         muted = NSColor.secondaryLabelColor()
-        for text, col_x, width in [(t("col_order"), 4, 86), (t("col_on"), 96, 40),
-                                   (t("col_character"), 154, 140),
+        for text, col_x, width in [(t("col_order"), 8, 40), (t("col_on"), 64, 40),
+                                   (t("col_character"), 124, 165),
                                    (t("col_class"), 300, 95),
                                    (t("role_label"), 400, 125),
                                    (t("col_team"), 532, 125),
@@ -232,7 +232,7 @@ class PrefsController(NSObject):
             y = i * ROW_HEIGHT + 4
             # type a number to place a character, which beats clicking an
             # arrow six times to sort a team by initiative
-            position = NSTextField.alloc().initWithFrame_(NSMakeRect(4, y, 32, 24))
+            position = NSTextField.alloc().initWithFrame_(NSMakeRect(8, y, 38, 24))
             position.setStringValue_("" if acc["is_menu"] else str(rank.get(acc["name"], "")))
             position.setAlignment_(1)  # centred
             position.setEditable_(not acc["is_menu"])
@@ -242,12 +242,7 @@ class PrefsController(NSObject):
             position.setTag_(i)
             self.rows_view.addSubview_(position)
 
-            self.rows_view.addSubview_(
-                button("\u25b2", 42, y, 24, 24, self, "moveUp:", i))
-            self.rows_view.addSubview_(
-                button("\u25bc", 68, y, 24, 24, self, "moveDown:", i))
-
-            check = NSButton.alloc().initWithFrame_(NSMakeRect(96, y, 22, 24))
+            check = NSButton.alloc().initWithFrame_(NSMakeRect(64, y, 22, 24))
             check.setButtonType_(NSSwitchButton)
             check.setTitle_("")
             check.setState_(1 if acc["active"] else 0)
@@ -256,13 +251,13 @@ class PrefsController(NSObject):
             check.setTag_(i)
             self.rows_view.addSubview_(check)
 
-            icon_view = NSImageView.alloc().initWithFrame_(NSMakeRect(122, y, 24, 24))
+            icon_view = NSImageView.alloc().initWithFrame_(NSMakeRect(92, y, 24, 24))
             icon_view.setImage_(load_icon(acc.get("slug")))
             icon_view.setImageScaling_(NSImageScaleProportionallyUpOrDown)
             self.rows_view.addSubview_(icon_view)
 
             self.rows_view.addSubview_(
-                label(acc["name"], 154, y + 4, 140, 18, bold=not acc["is_menu"]))
+                label(acc["name"], 124, y + 4, 165, 18, bold=not acc["is_menu"]))
             self.rows_view.addSubview_(
                 label(acc.get("class_name") or "-", 300, y + 4, 95, 18, size=11,
                       color=NSColor.secondaryLabelColor()))

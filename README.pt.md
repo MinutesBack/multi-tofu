@@ -35,6 +35,10 @@ o AppKit.
   para onde estava, com sua posição na rotação intacta.
 - **Ordem por número.** Digite uma posição para colocar um personagem, útil
   quando a ordem segue a iniciativa e não a ordem em que você abriu os clientes.
+- **Abre onde você parou.** Abrir o Multi-Tofu mostra os ajustes, então nunca
+  parece que nada aconteceu. Um clique desliga isso.
+- **Uma tecla, uma ação.** Atribuir uma tecla que outro atalho já tem libera ela
+  lá, em vez de deixar uma ação que nunca dispara.
 
 ## Onde ficam seus ajustes
 
