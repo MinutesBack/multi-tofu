@@ -5,6 +5,12 @@ set -e
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
+# Build outside the project. ~/Documents is an iCloud file provider and it
+# re-stamps com.apple.FinderInfo and com.apple.fileprovider onto the bundle
+# faster than xattr can strip them, and codesign refuses to sign over those.
+STAGE="$(mktemp -d)"
+trap 'rm -rf "$STAGE"' EXIT
+
 # icon first, PyInstaller needs it at bundle time
 ./.venv/bin/python tools/make_icon.py
 
@@ -14,17 +20,22 @@ cd "$ROOT"
   --add-data "$ROOT/multitofu/assets:multitofu/assets" \
   --icon "$ROOT/build/MultiTofu.icns" \
   --target-arch universal2 \
-  --distpath "$ROOT/build/staging" --workpath "$ROOT/build/pyinstaller" \
+  --distpath "$STAGE/dist" --workpath "$STAGE/work" \
   --specpath "$ROOT/build" \
   launcher.py
 
-APP="$ROOT/build/staging/Multi-Tofu.app"
+APP="$STAGE/dist/Multi-Tofu.app"
 PLIST="$APP/Contents/Info.plist"
 
 # menu bar only, no dock icon
 /usr/libexec/PlistBuddy -c "Add :LSUIElement bool true" "$PLIST" 2>/dev/null \
   || /usr/libexec/PlistBuddy -c "Set :LSUIElement true" "$PLIST"
-/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString 0.1.0" "$PLIST" 2>/dev/null || true
+# the version belongs to the package, not to this script
+VERSION="$(./.venv/bin/python -c 'import multitofu; print(multitofu.__version__)')"
+/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $VERSION" "$PLIST" 2>/dev/null \
+  || /usr/libexec/PlistBuddy -c "Add :CFBundleShortVersionString string $VERSION" "$PLIST"
+/usr/libexec/PlistBuddy -c "Set :CFBundleVersion $VERSION" "$PLIST" 2>/dev/null \
+  || /usr/libexec/PlistBuddy -c "Add :CFBundleVersion string $VERSION" "$PLIST"
 
 # strip extended attributes and AppleDouble files, codesign refuses to sign
 # over com.apple.FinderInfo and friends
@@ -56,6 +67,5 @@ if [[ "$1" == "--install" ]]; then
   # permission to the wrong one
   # a second copy is a second Dock icon and a second Spotlight hit, and it is
   # how you end up granting Accessibility to the one you are not running
-  rm -rf "$ROOT/build/staging"
-  echo "installed /Applications/Multi-Tofu.app"
+  echo "installed /Applications/Multi-Tofu.app $VERSION"
 fi

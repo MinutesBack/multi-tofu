@@ -25,6 +25,8 @@ class HotkeyManager:
         self.peek_down = False
         self.tap = None
         self.source = None
+        self.mouse_tap = None
+        self.mouse_source = None
         self.modifier_down = False
         self.enabled = True
         self.capture = None  # set to a callable to grab the next keypress
@@ -50,8 +52,7 @@ class HotkeyManager:
     def start(self):
         mask = (Quartz.CGEventMaskBit(Quartz.kCGEventKeyDown)
                 | Quartz.CGEventMaskBit(Quartz.kCGEventKeyUp)
-                | Quartz.CGEventMaskBit(Quartz.kCGEventFlagsChanged)
-                | Quartz.CGEventMaskBit(Quartz.kCGEventMouseMoved))
+                | Quartz.CGEventMaskBit(Quartz.kCGEventFlagsChanged))
         self.tap = Quartz.CGEventTapCreate(
             Quartz.kCGSessionEventTap,
             Quartz.kCGHeadInsertEventTap,
@@ -68,7 +69,50 @@ class HotkeyManager:
         Quartz.CGEventTapEnable(self.tap, True)
         return True
 
+    def start_mouse(self):
+        """Only while the wheel is on screen."""
+        if self.mouse_tap is not None:
+            return True
+        self.mouse_tap = Quartz.CGEventTapCreate(
+            Quartz.kCGSessionEventTap, Quartz.kCGHeadInsertEventTap,
+            Quartz.kCGEventTapOptionListenOnly,
+            Quartz.CGEventMaskBit(Quartz.kCGEventMouseMoved)
+            | Quartz.CGEventMaskBit(Quartz.kCGEventLeftMouseDragged)
+            | Quartz.CGEventMaskBit(Quartz.kCGEventRightMouseDragged),
+            self._mouse_callback, None)
+        if not self.mouse_tap:
+            return False
+        self.mouse_source = Quartz.CFMachPortCreateRunLoopSource(
+            None, self.mouse_tap, 0)
+        Quartz.CFRunLoopAddSource(Quartz.CFRunLoopGetCurrent(),
+                                  self.mouse_source, Quartz.kCFRunLoopCommonModes)
+        Quartz.CGEventTapEnable(self.mouse_tap, True)
+        return True
+
+    def stop_mouse(self):
+        if self.mouse_tap:
+            Quartz.CGEventTapEnable(self.mouse_tap, False)
+        if self.mouse_source:
+            Quartz.CFRunLoopRemoveSource(
+                Quartz.CFRunLoopGetCurrent(), self.mouse_source,
+                Quartz.kCFRunLoopCommonModes)
+        self.mouse_tap = None
+        self.mouse_source = None
+
+    def _mouse_callback(self, proxy, event_type, event, refcon):
+        if event_type in TAP_DISABLED:
+            Quartz.CGEventTapEnable(self.mouse_tap, True)
+            return event
+        try:
+            if self.modifier_down and self.on_mouse:
+                loc = Quartz.CGEventGetLocation(event)
+                self.on_mouse(loc.x, loc.y)
+        except Exception:
+            pass
+        return event
+
     def stop(self):
+        self.stop_mouse()
         if self.tap:
             Quartz.CGEventTapEnable(self.tap, False)
         if self.source:
@@ -99,12 +143,6 @@ class HotkeyManager:
                     self.modifier_down = down
                     if self.on_modifier:
                         self.on_modifier(down)
-            return event
-
-        if event_type == Quartz.kCGEventMouseMoved:
-            if self.modifier_down and self.on_mouse:
-                loc = Quartz.CGEventGetLocation(event)
-                self.on_mouse(loc.x, loc.y)
             return event
 
         peek = self.config.data.get("binds", {}).get("peek")

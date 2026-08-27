@@ -17,7 +17,7 @@ from Foundation import NSObject, NSTimer
 from . import APP_NAME, __version__
 from . import appnap
 from .accounts import Scanner, accessibility_trusted, request_accessibility
-from .config import CONFIG_DIR, Config
+from .config import CONFIG_DIR, CONFIG_PATH, Config
 from .i18n import set_language, t, team_display
 from .hotkeys import HotkeyManager
 from .prefs import PrefsController
@@ -25,7 +25,9 @@ from .radial import Wheel, load_icon, play
 
 
 LOG_PATH = os.path.expanduser("~/Library/Logs/Multi-Tofu.log")
-LOCK_PATH = os.path.join(CONFIG_DIR, "instance.lock")
+# The lock belongs to a configuration, not to the machine. Two setups are two
+# instances, which is what the test rig needs and what a second config means.
+LOCK_PATH = os.path.splitext(CONFIG_PATH)[0] + ".lock"
 
 
 def log(message):
@@ -46,7 +48,7 @@ def claim_single_instance():
     fire twice, so only one wins."""
     global _lock_handle
     try:
-        os.makedirs(CONFIG_DIR, exist_ok=True)
+        os.makedirs(os.path.dirname(LOCK_PATH) or CONFIG_DIR, exist_ok=True)
         handle = open(LOCK_PATH, "w")
         fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
     except OSError as exc:
@@ -490,6 +492,7 @@ class DosoftApp(NSObject):
                 delay, self, "showWheel:", None, False)
         else:
             self._cancel_wheel_timer()
+            self.hotkeys.stop_mouse()
             if self.wheel.visible:
                 target = self.wheel.selection()
                 self.wheel.hide()
@@ -511,6 +514,7 @@ class DosoftApp(NSObject):
 
     def showWheel_(self, timer):
         self.wheel_timer = None
+        self.hotkeys.start_mouse()
         if not self.config.data.get("wheel_enabled", True):
             return
         if not self.hotkeys.modifier_down:
