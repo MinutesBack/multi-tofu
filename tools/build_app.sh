@@ -42,15 +42,40 @@ VERSION="$(./.venv/bin/python -c 'import multitofu; print(multitofu.__version__)
 xattr -cr "$APP"
 find "$APP" -name "._*" -delete 2>/dev/null || true
 
-# Ad-hoc signing keys the identity to the code hash, so every rebuild is a new
-# app to TCC and the Accessibility grant has to be given again. The Settings
-# window has a Fix access button that resets the record for exactly this.
+# Sign with a stable identity if there is one.
+#
+# Ad-hoc signing keys the app's identity to the hash of its own code, so the
+# designated requirement is a pair of cdhashes that change on every build.
+# macOS stores the Accessibility grant against that requirement, which is why
+# a rebuilt app is refused while its row in System Settings still looks on.
+#
+# A self-signed code signing certificate fixes it: the requirement becomes the
+# bundle id plus the certificate, and both survive a rebuild. Create one with
+#   ./tools/signing_identity.sh create
+# There is no Apple developer account involved and no notarisation. It is only
+# about keeping the permission, not about Gatekeeper.
+IDENTITY="${MULTITOFU_IDENTITY:-Multi-Tofu Local Signing}"
+SIGN_KEYCHAIN="$HOME/Library/Application Support/Multi-Tofu/signing.keychain-db"
+SIGN_PASS="$HOME/Library/Application Support/Multi-Tofu/signing.keychain.pass"
+if [[ -f "$SIGN_KEYCHAIN" ]] \
+   && security find-identity -v -p codesigning "$SIGN_KEYCHAIN" 2>/dev/null | grep -q "$IDENTITY"; then
+  SIGN_ARGS=(--sign "$IDENTITY" --keychain "$SIGN_KEYCHAIN")
+  # it locks itself after six hours, so unlock before every build
+  [[ -f "$SIGN_PASS" ]] && security unlock-keychain -p "$(cat "$SIGN_PASS")" "$SIGN_KEYCHAIN"
+  echo "signing as $IDENTITY, the Accessibility grant carries over"
+else
+  SIGN_ARGS=(--sign -)
+  echo "no signing identity, falling back to ad-hoc"
+  echo "the Accessibility grant will have to be given again after this build"
+  echo "run ./tools/signing_identity.sh create once to stop that"
+fi
+
 # PlistBuddy and PyInstaller both leave extended attributes behind, and
 # codesign refuses to sign over them, so clean and retry once.
-if ! codesign --force --deep --sign - --identifier fr.multitofu.app "$APP" 2>/dev/null; then
+if ! codesign --force --deep "${SIGN_ARGS[@]}" --identifier fr.multitofu.app "$APP" 2>/dev/null; then
   xattr -cr "$APP"
   find "$APP" -name "._*" -delete 2>/dev/null || true
-  codesign --force --deep --sign - --identifier fr.multitofu.app "$APP"
+  codesign --force --deep "${SIGN_ARGS[@]}" --identifier fr.multitofu.app "$APP"
 fi
 codesign --verify --deep --strict "$APP" || { echo "signature is not valid"; exit 1; }
 codesign -dv "$APP" 2>&1 | head -3
@@ -64,7 +89,7 @@ if [[ "$1" == "--install" ]]; then
   cp -R "$APP" "/Applications/Multi-Tofu.app"
   xattr -cr "/Applications/Multi-Tofu.app"
   find "/Applications/Multi-Tofu.app" -name "._*" -delete 2>/dev/null || true
-  codesign --force --deep --sign - --identifier fr.multitofu.app "/Applications/Multi-Tofu.app"
+  codesign --force --deep "${SIGN_ARGS[@]}" --identifier fr.multitofu.app "/Applications/Multi-Tofu.app"
   # leave exactly one launchable copy on disk, two is how you end up granting
   # permission to the wrong one
   # a second copy is a second Dock icon and a second Spotlight hit, and it is

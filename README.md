@@ -161,6 +161,37 @@ Check what it can see at any time:
 ./run.sh --probe
 ```
 
+## Building the app, and keeping the permission
+
+```
+./tools/signing_identity.sh create    once
+./tools/build_app.sh --install        every time
+```
+
+Do the first line once and you never grant Accessibility twice.
+
+An app signed ad-hoc has a designated requirement made of the hash of its own
+code, so every rebuild is a different app to macOS and the permission you
+granted no longer applies. The row stays in System Settings looking switched
+on, which is what makes it confusing: nothing is broken, the rule just does not
+match any more.
+
+`signing_identity.sh create` makes a self-signed code signing certificate in
+its own keychain and the build uses it, so the requirement becomes the bundle
+id plus the certificate:
+
+```
+designated => identifier "fr.multitofu.app" and certificate root = H"2072..."
+```
+
+Neither half changes when the code does. There is no Apple developer account
+involved and it does nothing for Gatekeeper, so a downloaded release still
+needs right click then Open the first time. It is only about the permission.
+
+Without the certificate the build falls back to ad-hoc and says so. In that
+case Settings has a **Fix access** button that resets the record so macOS asks
+again, which is the only thing that works once a stale rule is in place.
+
 ## Default shortcuts
 
 | Action | Key |

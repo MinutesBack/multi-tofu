@@ -13,6 +13,12 @@ python3 -m venv .venv
 Run from Terminal.app and grant Terminal Accessibility, or build the app with
 `./tools/build_app.sh --install` and grant Multi-Tofu itself.
 
+Before your first build, run `./tools/signing_identity.sh create`. It makes a
+self-signed code signing certificate in its own keychain. Without it the build
+signs ad-hoc, the designated requirement is the hash of the code itself, and
+every rebuild costs you the Accessibility grant again while the row in System
+Settings still looks switched on.
+
 ## Testing
 
 Logic tests need nothing special:
