@@ -40,6 +40,31 @@ and AppKit.
 - **One key, one action.** Assigning a key another shortcut holds frees it
   there, rather than leaving two actions on one key where only one ever fires.
 
+## Having it running when you play
+
+macOS has no trigger for "start this app when that other app starts". launchd
+can watch a path, a mount or a queue, but not another application launching,
+and an app can only be told about launches once it is already running.
+
+So there are two honest ways to have Multi-Tofu ready when you open the Ankama
+Launcher.
+
+**Start it at login.** A checkbox in Settings. It costs nothing while you are
+not playing: with no Dofus client running, a scan never reaches the
+accessibility layer, it just finds nothing in the list of running apps.
+
+**Or watch the launcher's files.** Both the Ankama Launcher and the game write
+to their own directories on startup, and launchd can watch those.
+
+```
+./tools/watch_ankama.sh install    # start Multi-Tofu when either writes
+./tools/watch_ankama.sh status
+./tools/watch_ankama.sh remove
+```
+
+It starts the app in the background, so nothing steals your focus, and
+launching it twice is harmless because a second instance refuses to start.
+
 ## Where your setup lives
 
 Everything you configure is written to

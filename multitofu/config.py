@@ -50,6 +50,8 @@ DEFAULTS = {
     "show_dock_icon": False,
     # opening a menu bar app that shows nothing looks like it failed to start
     "open_settings_on_launch": True,
+    # macOS cannot start an app when another app starts, so login is the hook
+    "launch_at_login": False,
     # auto, en, fr, es or pt
     "language": "auto",
 }

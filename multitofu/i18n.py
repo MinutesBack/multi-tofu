@@ -318,6 +318,32 @@ STRINGS = {
         "es": "Abrir esta ventana al iniciar Multi-Tofu",
         "pt": "Abrir esta janela ao iniciar o Multi-Tofu",
     },
+    "login_label": {
+        "en": "Start Multi-Tofu when I log in",
+        "fr": "Lancer Multi-Tofu à l'ouverture de session",
+        "es": "Iniciar Multi-Tofu al iniciar sesión",
+        "pt": "Iniciar o Multi-Tofu ao fazer login",
+    },
+    "login_help": {
+        "en": "macOS cannot start an app when another app starts, so this is "
+              "how it is already there when you open the Ankama Launcher. It "
+              "costs nothing while no client is running.",
+        "fr": "macOS ne sait pas lancer une app au démarrage d'une autre, c'est "
+              "donc ainsi qu'elle est déjà là quand vous ouvrez l'Ankama "
+              "Launcher. Sans client ouvert, elle ne coûte rien.",
+        "es": "macOS no puede iniciar una app cuando arranca otra, así que así "
+              "ya está lista cuando abres el Ankama Launcher. Sin ningún "
+              "cliente abierto no cuesta nada.",
+        "pt": "O macOS não consegue iniciar um app quando outro abre, então é "
+              "assim que ele já está lá quando você abre o Ankama Launcher. Sem "
+              "nenhum cliente aberto, não custa nada.",
+    },
+    "login_approve": {
+        "en": "Allow it in System Settings > General > Login Items",
+        "fr": "Autorisez dans Réglages Système > Général > Ouverture",
+        "es": "Permítelo en Ajustes del Sistema > General > Ítems de inicio",
+        "pt": "Permita em Ajustes do Sistema > Geral > Itens de Início",
+    },
     "awake_label": {
         "en": "Keep background clients awake",
         "fr": "Garder les clients en arrière-plan actifs",

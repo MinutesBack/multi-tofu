@@ -15,7 +15,7 @@ from AppKit import (
 from Foundation import NSObject, NSTimer
 
 from . import APP_NAME, __version__
-from . import appnap
+from . import appnap, loginitem
 from .accounts import Scanner, accessibility_trusted, request_accessibility
 from .config import CONFIG_DIR, CONFIG_PATH, Config
 from .i18n import set_language, t, team_display
@@ -114,11 +114,16 @@ class DosoftApp(NSObject):
                 2.0, self, "checkTrust:", None, True)
         if self.config.data.get("keep_clients_awake"):
             appnap.set_disabled(self.config, True)
+        if loginitem.available():
+            wanted = bool(self.config.data.get("launch_at_login"))
+            if wanted != loginitem.is_enabled():
+                loginitem.set_enabled(wanted)
         interval = float(self.config.data.get("scan_interval", 2.0))
         self.scan_timer = NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(
             interval, self, "tick:", None, True)
         self.rebuild_menu()
-        if self.config.data.get("open_settings_on_launch", True):
+        if self.config.data.get("open_settings_on_launch", True) \
+                and "--background" not in sys.argv:
             # a menu bar app that opens to nothing at all reads as broken
             NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(
                 0.6, self, "openPrefsOnLaunch:", None, False)
@@ -584,6 +589,12 @@ def main():
         raise SystemExit(probe())
     if "--grant" in sys.argv:
         raise SystemExit(grant())
+    if "--help" in sys.argv or "-h" in sys.argv:
+        print("Multi-Tofu\n"
+              "  --probe       list the Dofus clients it can see\n"
+              "  --grant       raise the Accessibility prompt\n"
+              "  --background  start without opening the settings window")
+        raise SystemExit(0)
     if not claim_single_instance():
         print("Multi-Tofu is already running.", flush=True)
         try:

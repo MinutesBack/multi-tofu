@@ -9,7 +9,7 @@ from AppKit import (
 )
 from Foundation import NSObject, NSTimer
 
-from . import appnap
+from . import appnap, loginitem
 from .i18n import (STRINGS, SUPPORTED, language_name, set_language, t,
                     team_display)
 from .roles import ROLE_KEYS
@@ -23,7 +23,7 @@ BIND_ORDER = ["next", "prev", "leader", "refresh", "prefs", "peek"]
 ROW_HEIGHT = 34
 HEADER_HEIGHT = 118
 WINDOW_W = 900
-WINDOW_H = 700
+WINDOW_H = 720
 
 
 class FlippedView(NSView):
@@ -159,14 +159,24 @@ class PrefsController(NSObject):
         content.addSubview_(label(t("awake_help"), 340, 262, WINDOW_W - 370, 34,
                                   size=10, color=NSColor.secondaryLabelColor()))
 
-        self.launch_check = NSButton.alloc().initWithFrame_(NSMakeRect(20, 272, 420, 24))
+        self.login_check = NSButton.alloc().initWithFrame_(NSMakeRect(340, 272, 420, 24))
+        self.login_check.setButtonType_(NSSwitchButton)
+        self.login_check.setTitle_(t("login_label"))
+        self.login_check.setTarget_(self)
+        self.login_check.setAction_("loginToggled:")
+        content.addSubview_(self.login_check)
+        self.login_note = label("", 340, 296, WINDOW_W - 370, 16, size=10,
+                                color=NSColor.secondaryLabelColor())
+        content.addSubview_(self.login_note)
+
+        self.launch_check = NSButton.alloc().initWithFrame_(NSMakeRect(20, 272, 300, 24))
         self.launch_check.setButtonType_(NSSwitchButton)
         self.launch_check.setTitle_(t("open_on_launch"))
         self.launch_check.setTarget_(self)
         self.launch_check.setAction_("launchToggled:")
         content.addSubview_(self.launch_check)
 
-        content.addSubview_(label(t("characters"), 20, 306, 200, 20, bold=True, size=13))
+        content.addSubview_(label(t("characters"), 20, 322, 200, 20, bold=True, size=13))
         muted = NSColor.secondaryLabelColor()
         for text, col_x, width in [(t("col_order"), 8, 40), (t("col_on"), 64, 40),
                                    (t("col_character"), 124, 165),
@@ -175,10 +185,10 @@ class PrefsController(NSObject):
                                    (t("col_team"), 532, 125),
                                    (t("col_key"), 666, 150)]:
             content.addSubview_(
-                label(text, 16 + col_x, 336, width, 16, size=10, color=muted))
+                label(text, 16 + col_x, 352, width, 16, size=10, color=muted))
 
         scroll = NSScrollView.alloc().initWithFrame_(
-            NSMakeRect(16, 356, WINDOW_W - 32, WINDOW_H - 374))
+            NSMakeRect(16, 372, WINDOW_W - 32, WINDOW_H - 390))
         scroll.setHasVerticalScroller_(True)
         scroll.setDrawsBackground_(False)
         scroll.setAutoresizingMask_(2 | 16)  # width + height sizable
@@ -201,6 +211,14 @@ class PrefsController(NSObject):
         self.awake_check.setState_(1 if appnap.is_disabled(self.app.config) else 0)
         self.launch_check.setState_(
             1 if cfg.get("open_settings_on_launch", True) else 0)
+        self.login_check.setEnabled_(loginitem.available())
+        self.login_check.setState_(1 if loginitem.is_enabled() else 0)
+        if not loginitem.available():
+            self.login_note.setStringValue_("")
+        elif loginitem.needs_approval():
+            self.login_note.setStringValue_(t("login_approve"))
+        else:
+            self.login_note.setStringValue_(t("login_help")[:110])
         code = cfg.get("language", "auto")
         if code in self.language_codes:
             self.language_popup.selectItemAtIndex_(self.language_codes.index(code))
@@ -467,6 +485,14 @@ class PrefsController(NSObject):
         self.app.config.data["peek_target"] = \
             self.peek_targets[sender.indexOfSelectedItem()]
         self.app.config.save()
+
+    def loginToggled_(self, sender):
+        self._cancel_capture()
+        wanted = bool(sender.state())
+        loginitem.set_enabled(wanted)
+        self.app.config.data["launch_at_login"] = wanted
+        self.app.config.save()
+        self.reload()
 
     def launchToggled_(self, sender):
         self._cancel_capture()
