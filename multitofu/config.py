@@ -26,20 +26,26 @@ DEFAULTS = {
         # Control+F1. A crowded menu bar can hide the status item behind the
         # notch, so there is always a way in from the keyboard.
         "prefs": {"keycode": 122, "flags": 262144},
+        # the key above Tab, same physical spot on AZERTY and QWERTY
+        "peek": {"keycode": 50, "flags": 0},
     },
     "character_binds": {},
+    "roles": {},
+    # what a bare peek looks at: leader, next or previous
+    "peek_target": "leader",
+    "keep_clients_awake": False,
     "wheel_enabled": True,
     "wheel_modifier": "alt",
-    "wheel_radius": 130,
+    "wheel_radius": 148,
     "wheel_delay_ms": 200,
     "wheel_sounds": True,
     "volume_level": 50,
-    "wheel_inner_radius": 46,
+    "wheel_inner_radius": 44,
     "swallow_bound_keys": True,
     "hide_login_windows": False,
     # login windows stay listed in the menu bar but never come up on F1
     "login_windows_in_rotation": False,
-    "scan_interval": 2.0,
+    "scan_interval": 4.0,
     # Switch on when the menu bar is too full to show the status item.
     "show_dock_icon": False,
     # auto, en, fr, es or pt

@@ -27,6 +27,27 @@ and AppKit.
 - **Menu bar.** Click any character to focus it, switch rotation, open settings.
 - **Four languages.** English, French, Spanish and Portuguese, matched to your
   system on first run and switchable at any time.
+- **Roles.** Tag each character and the wheel colours their segment by it, so
+  past five clients you read colour instead of six names.
+- **Peek.** Hold one key to look at another client, release and you are back
+  where you were, rotation position intact.
+- **Order by number.** Type a position to sort your rotation, useful when it
+  follows initiative rather than the order clients happened to open.
+- **Stays saved.** Order, teams, roles, leader and every shortcut are written to
+  disk as you change them. Log out, come back tomorrow, it is all still there.
+
+## Where your setup lives
+
+Everything you configure is written to
+`~/Library/Application Support/Multi-Tofu/config.json` the moment you change it,
+keyed by character name. Rotation order, teams, roles, leader, per character
+keys and every shortcut. Close the clients, close the app, come back a week
+later, log the same characters in and it is exactly as you left it.
+
+Class icons are read from the game, not guessed. The window title carries the
+class, so an Eniripsa shows the Eniripsa icon without you telling it anything.
+The last known class is remembered per character, so a client that has not
+finished loading still shows the right one.
 
 ## Character names
 

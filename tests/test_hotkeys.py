@@ -14,35 +14,38 @@ import subprocess
 import sys
 import time
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import Quartz
 from AppKit import NSWorkspace
-from ApplicationServices import (
-    AXUIElementCreateSystemWide, AXUIElementCopyAttributeValue,
-    AXUIElementCreateApplication,
-)
 
-BUNDLES = {"com.ankama.dofus", "com.ankama.dofus.mock"}
+from helpers import (BUNDLES, focused_title, outside_app_has_focus,
+                     wait_for_client_focus)
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TEST_CONFIG = "/tmp/multitofu_hotkey_test.json"
-SETTLE = 1.2
+SETTLE = 1.4
 RESULTS = []
+SKIPPED = [0]
+LAST_TITLE = [None]
 
 KEY_F1, KEY_F2, KEY_F3, KEY_F4 = 122, 120, 99, 118
 KEY_OPTION = 58
+KEY_PEEK = 50  # the key above Tab
 
 BASE_CONFIG = {
     "bundle_ids": ["com.Ankama.Dofus", "com.ankama.dofus.mock"],
     "binds": {"next": {"keycode": KEY_F1, "flags": 0},
               "prev": {"keycode": KEY_F2, "flags": 0},
               "leader": {"keycode": KEY_F3, "flags": 0},
-              "refresh": {"keycode": KEY_F4, "flags": 0}},
+              "refresh": {"keycode": KEY_F4, "flags": 0},
+              "peek": {"keycode": KEY_PEEK, "flags": 0}},
+    "peek_target": "leader",
     "wheel_enabled": True, "wheel_modifier": "alt", "wheel_delay_ms": 150,
     "wheel_sounds": False, "current_mode": "ALL",
     "accounts_state": {}, "accounts_team": {}, "custom_order": [],
-    "classes": {}, "leader_name": "", "character_binds": {},
+    "classes": {}, "leader_name": "", "character_binds": {}, "roles": {},
 }
 
 
@@ -52,71 +55,17 @@ def record(ok, label, detail=""):
     return ok
 
 
-def _title_of(element):
-    for attr in ("AXFocusedWindow", "AXMainWindow"):
-        err, win = AXUIElementCopyAttributeValue(element, attr, None)
-        if err == 0 and win is not None:
-            err, title = AXUIElementCopyAttributeValue(win, "AXTitle", None)
-            if err == 0 and title:
-                return str(title)
-    return None
-
-
-def focused_title(retries=12):
-    """Two independent reads: the system-wide focused app, then a sweep of the
-    client processes for whichever reports itself frontmost."""
-    for _ in range(retries):
-        system = AXUIElementCreateSystemWide()
-        err, app = AXUIElementCopyAttributeValue(system, "AXFocusedApplication", None)
-        if err == 0 and app is not None:
-            title = _title_of(app)
-            if title:
-                return title
-        for running in NSWorkspace.sharedWorkspace().runningApplications():
-            if (running.bundleIdentifier() or "").lower() not in BUNDLES:
-                continue
-            ref = AXUIElementCreateApplication(running.processIdentifier())
-            err, front = AXUIElementCopyAttributeValue(ref, "AXFrontmost", None)
-            if err == 0 and front:
-                title = _title_of(ref)
-                if title:
-                    return title
-        time.sleep(0.25)
-    _dump_focus_state()
-    return None
-
-
-def _dump_focus_state():
-    system = AXUIElementCreateSystemWide()
-    err, app = AXUIElementCopyAttributeValue(system, "AXFocusedApplication", None)
-    name = pid = None
-    if err == 0 and app is not None:
-        e, name = AXUIElementCopyAttributeValue(app, "AXTitle", None)
-        e2, role = AXUIElementCopyAttributeValue(app, "AXRole", None)
-    print(f"      [diag] system focused app title={name!r}", flush=True)
-    for running in NSWorkspace.sharedWorkspace().runningApplications():
-        bid = (running.bundleIdentifier() or "").lower()
-        if bid not in BUNDLES:
-            continue
-        ref = AXUIElementCreateApplication(running.processIdentifier())
-        e, front = AXUIElementCopyAttributeValue(ref, "AXFrontmost", None)
-        e2, fw = AXUIElementCopyAttributeValue(ref, "AXFocusedWindow", None)
-        e3, mw = AXUIElementCopyAttributeValue(ref, "AXMainWindow", None)
-        t = None
-        if mw is not None:
-            e4, t = AXUIElementCopyAttributeValue(mw, "AXTitle", None)
-        print(f"      [diag] pid={running.processIdentifier()} bid={bid} "
-              f"frontmost={front} focusedWin={fw is not None} mainWin={mw is not None} "
-              f"mainTitle={t!r}", flush=True)
-    ws_front = NSWorkspace.sharedWorkspace().frontmostApplication()
-    print(f"      [diag] NSWorkspace front={ws_front.bundleIdentifier() if ws_front else None}", flush=True)
-
-
 def tap_key(keycode):
     for down in (True, False):
         event = Quartz.CGEventCreateKeyboardEvent(None, keycode, down)
         Quartz.CGEventPost(Quartz.kCGHIDEventTap, event)
         time.sleep(0.04)
+
+
+def hold_key(keycode, down):
+    event = Quartz.CGEventCreateKeyboardEvent(None, keycode, down)
+    Quartz.CGEventPost(Quartz.kCGHIDEventTap, event)
+    time.sleep(0.06)
 
 
 def set_modifier(keycode, flags):
@@ -187,10 +136,8 @@ def outside_app_has_focus():
 def settle_or_skip(label):
     """True when a client still holds the front window, False when something
     else grabbed it and the check cannot be trusted."""
-    for _ in range(12):
-        if not outside_app_has_focus():
-            return True
-        time.sleep(0.5)
+    if wait_for_client_focus():
+        return True
     SKIPPED[0] += 1
     front = NSWorkspace.sharedWorkspace().frontmostApplication()
     print(f"  SKIP  {label:26} another app holds focus "
@@ -290,6 +237,21 @@ def main():
             current = where(titles)
             record(current == order[2], "F6 direct bind",
                    f"-> {current} (bound to {order[2]})")
+
+            print("\n-- peek, hold and release --", flush=True)
+            if settle_or_skip("peek"):
+                before = where(titles)
+                hold_key(KEY_PEEK, True)
+                time.sleep(SETTLE)
+                during = where(titles)
+                record(during == order[1], "peek moves to the leader",
+                       f"{before} -> {during} (leader is {order[1]})")
+                hold_key(KEY_PEEK, False)
+                time.sleep(SETTLE)
+                after = where(titles)
+                record(after == before, "release comes back",
+                       f"{during} -> {after} (started on {before})")
+                current = after or before
 
             print("\n-- Option wheel --", flush=True)
             move_mouse(700, 520)

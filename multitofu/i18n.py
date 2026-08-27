@@ -56,6 +56,36 @@ STRINGS = {
         "es": "Ajustes...", "pt": "Ajustes...",
     },
     "menu_quit": {"en": "Quit", "fr": "Quitter", "es": "Salir", "pt": "Sair"},
+    "menu_quit_clients": {
+        "en": "Close all Dofus clients...", "fr": "Fermer tous les clients Dofus...",
+        "es": "Cerrar todos los clientes de Dofus...", "pt": "Fechar todos os clientes do Dofus...",
+    },
+    "quit_clients_title": {
+        "en": "Close {count} Dofus client(s)?",
+        "fr": "Fermer {count} client(s) Dofus ?",
+        "es": "¿Cerrar {count} cliente(s) de Dofus?",
+        "pt": "Fechar {count} cliente(s) do Dofus?",
+    },
+    "quit_clients_body": {
+        "en": "Each client is asked to quit the way the red button does, so the "
+              "game saves and disconnects cleanly. Anything you have not "
+              "confirmed in game is still lost.",
+        "fr": "Chaque client reçoit une demande de fermeture, comme avec le "
+              "bouton rouge, le jeu sauvegarde et se déconnecte proprement. Ce "
+              "que vous n'avez pas validé en jeu est quand même perdu.",
+        "es": "A cada cliente se le pide que salga igual que con el botón rojo, "
+              "así el juego guarda y se desconecta limpiamente. Lo que no hayas "
+              "confirmado en el juego se pierde igualmente.",
+        "pt": "Cada cliente recebe um pedido de saída como no botão vermelho, "
+              "então o jogo salva e desconecta direito. O que você não confirmou "
+              "no jogo se perde do mesmo jeito.",
+    },
+    "quit_clients_confirm": {
+        "en": "Close them", "fr": "Fermer", "es": "Cerrar", "pt": "Fechar",
+    },
+    "quit_clients_cancel": {
+        "en": "Cancel", "fr": "Annuler", "es": "Cancelar", "pt": "Cancelar",
+    },
     "leader_tag": {"en": "leader", "fr": "chef", "es": "líder", "pt": "líder"},
 
     # the placeholder for a client sitting on the login screen
@@ -253,6 +283,53 @@ STRINGS = {
     "alert_ok": {"en": "OK", "fr": "OK", "es": "OK", "pt": "OK"},
     # French puts a space before a colon
     "colon": {"en": ":", "fr": " :", "es": ":", "pt": ":"},
+    # roles
+    "role_label": {"en": "Role", "fr": "Rôle", "es": "Rol", "pt": "Função"},
+    "role_none": {"en": "No role", "fr": "Aucun rôle", "es": "Sin rol", "pt": "Sem função"},
+    "role_tank": {"en": "Tank", "fr": "Tank", "es": "Tanque", "pt": "Tanque"},
+    "role_healer": {"en": "Healer", "fr": "Soigneur", "es": "Sanador", "pt": "Curandeiro"},
+    "role_damage": {"en": "Damage", "fr": "Dégâts", "es": "Daño", "pt": "Dano"},
+    "role_support": {"en": "Support", "fr": "Soutien", "es": "Apoyo", "pt": "Suporte"},
+    "role_scout": {"en": "Scout", "fr": "Éclaireur", "es": "Explorador", "pt": "Batedor"},
+
+    # peek
+    "bind_peek": {
+        "en": "Peek (hold)", "fr": "Coup d'oeil (maintenir)",
+        "es": "Vistazo (mantener)", "pt": "Espiada (segurar)",
+    },
+    "peek_target_label": {
+        "en": "Peek looks at:", "fr": "Le coup d'oeil regarde :",
+        "es": "El vistazo mira a:", "pt": "A espiada olha para:",
+    },
+    "peek_target_leader": {"en": "Leader", "fr": "Le chef", "es": "El líder", "pt": "O líder"},
+    "peek_target_next": {"en": "Next", "fr": "Le suivant", "es": "El siguiente", "pt": "O próximo"},
+    "peek_target_prev": {"en": "Previous", "fr": "Le précédent", "es": "El anterior", "pt": "O anterior"},
+
+    # app nap
+    "awake_label": {
+        "en": "Keep background clients awake",
+        "fr": "Garder les clients en arrière-plan actifs",
+        "es": "Mantener despiertos los clientes en segundo plano",
+        "pt": "Manter os clientes em segundo plano acordados",
+    },
+    "awake_help": {
+        "en": "macOS throttles apps with no visible window. This writes the "
+              "documented opt-out into the Dofus preferences. It applies the "
+              "next time you start a client.",
+        "fr": "macOS ralentit les apps sans fenêtre visible. Ceci écrit "
+              "l'option documentée dans les préférences de Dofus. Effet au "
+              "prochain lancement d'un client.",
+        "es": "macOS ralentiza las apps sin ventana visible. Esto escribe la "
+              "opción documentada en las preferencias de Dofus. Se aplica la "
+              "próxima vez que abras un cliente.",
+        "pt": "O macOS desacelera apps sem janela visível. Isto grava a opção "
+              "documentada nas preferências do Dofus. Vale a partir da próxima "
+              "vez que você abrir um cliente.",
+    },
+    "wheel_cancel": {
+        "en": "Release to cancel", "fr": "Relâcher pour annuler",
+        "es": "Suelta para cancelar", "pt": "Solte para cancelar",
+    },
     "team_label": {
         "en": "Team {number}", "fr": "Équipe {number}",
         "es": "Equipo {number}", "pt": "Equipe {number}",

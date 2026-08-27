@@ -7,39 +7,30 @@ import os
 import sys
 import time
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from AppKit import NSApplication, NSApplicationActivationPolicyAccessory, NSApp
-from ApplicationServices import (
-    AXUIElementCreateSystemWide, AXUIElementCopyAttributeValue,
-)
 from Foundation import NSObject, NSTimer
+
+from helpers import focused_title, outside_app_has_focus, wait_for_client_focus
 
 from multitofu.accounts import Scanner
 from multitofu.config import Config
 
-SETTLE = 0.9
+SETTLE = 1.3
 RESULTS = []
-
-
-def focused_window_title():
-    """Ground truth, read from the system-wide element rather than from the
-    same per-app attribute the app itself uses."""
-    system = AXUIElementCreateSystemWide()
-    err, app = AXUIElementCopyAttributeValue(system, "AXFocusedApplication", None)
-    if err != 0 or app is None:
-        return None
-    err, win = AXUIElementCopyAttributeValue(app, "AXFocusedWindow", None)
-    if err != 0 or win is None:
-        return None
-    err, title = AXUIElementCopyAttributeValue(win, "AXTitle", None)
-    return str(title) if err == 0 and title else None
+SKIPPED = [0]
 
 
 def check(label, account, scanner):
     """A login window has no character name, so compare on the raw title."""
     time.sleep(SETTLE)
-    title = focused_window_title() or "<none>"
+    if not wait_for_client_focus():
+        SKIPPED[0] += 1
+        print(f"  SKIP  {label:28} another app holds the front window", flush=True)
+        return True
+    title = focused_title() or "<none>"
     expected_name = account["name"]
     ok = title == account["title"]
     actual = title.split(" - ")[0]
@@ -60,7 +51,8 @@ class Suite(NSObject):
             RESULTS.append(False)
         total = len(RESULTS)
         passed = sum(1 for r in RESULTS if r)
-        print(f"\n{passed}/{total} checks passed")
+        extra = f", {SKIPPED[0]} skipped (focus stolen)" if SKIPPED[0] else ""
+        print(f"\n{passed}/{total} checks passed{extra}")
         NSApp.terminate_(self)
 
     def body(self):

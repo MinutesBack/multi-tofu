@@ -8,13 +8,14 @@ import sys
 import objc
 import Quartz
 from AppKit import (
-    NSApp, NSApplication, NSApplicationActivationPolicyAccessory,
+    NSApp, NSApplication, NSRunningApplication, NSApplicationActivationPolicyAccessory,
     NSApplicationActivationPolicyRegular, NSAlert, NSImage, NSMakeSize, NSMenu,
     NSMenuItem, NSScreen, NSStatusBar, NSVariableStatusItemLength,
 )
 from Foundation import NSObject, NSTimer
 
 from . import APP_NAME, __version__
+from . import appnap
 from .accounts import Scanner, accessibility_trusted, request_accessibility
 from .config import CONFIG_DIR, Config
 from .i18n import set_language, t, team_display
@@ -74,7 +75,8 @@ class DosoftApp(NSObject):
         self.scanner = Scanner(self.config)
         self.wheel = Wheel(self.config)
         self.hotkeys = HotkeyManager(
-            self.config, self.queueAction, self.onModifier, self.onMouse)
+            self.config, self.queueAction, self.onModifier, self.onMouse,
+            self.queuePeek)
         self.hotkeys_running = False
         self.prefs = PrefsController.alloc().initWithApp_(self)
         self.current_idx = 0
@@ -83,6 +85,7 @@ class DosoftApp(NSObject):
         self.wheel_timer = None
         self.scan_timer = None
         self.trust_timer = None
+        self.peek_origin = None
         return self
 
     # ---------- lifecycle ----------
@@ -107,6 +110,8 @@ class DosoftApp(NSObject):
             request_accessibility()
             self.trust_timer = NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(
                 2.0, self, "checkTrust:", None, True)
+        if self.config.data.get("keep_clients_awake"):
+            appnap.set_disabled(self.config, True)
         interval = float(self.config.data.get("scan_interval", 2.0))
         self.scan_timer = NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(
             interval, self, "tick:", None, True)
@@ -285,6 +290,11 @@ class DosoftApp(NSObject):
         menu.addItem_(mode_item)
 
         menu.addItem_(NSMenuItem.separatorItem())
+        if self.scanner.accounts:
+            close = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
+                t("menu_quit_clients"), "quitClients:", "")
+            close.setTarget_(self)
+            menu.addItem_(close)
         for title, action, key in [(t("menu_rescan"), "rescan:", "r"),
                                    (t("menu_prefs"), "openPrefs:", ","),
                                    (t("menu_quit"), "quitApp:", "q")]:
@@ -323,6 +333,26 @@ class DosoftApp(NSObject):
         if self.trust_timer is None:
             self.trust_timer = NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(
                 2.0, self, "checkTrust:", None, True)
+
+    def quitClients_(self, sender):
+        """Ask every client to quit. Behind a confirmation on purpose, this is
+        the one irreversible thing the app can do."""
+        accounts = list(self.scanner.accounts)
+        if not accounts:
+            return
+        alert = NSAlert.alloc().init()
+        alert.setMessageText_(t("quit_clients_title", count=len(accounts)))
+        alert.setInformativeText_(t("quit_clients_body"))
+        alert.addButtonWithTitle_(t("quit_clients_confirm"))
+        alert.addButtonWithTitle_(t("quit_clients_cancel"))
+        NSApp.activateIgnoringOtherApps_(True)
+        if alert.runModal() != 1000:
+            return
+        for pid in {acc["pid"] for acc in accounts}:
+            app = NSRunningApplication.runningApplicationWithProcessIdentifier_(pid)
+            if app is not None:
+                app.terminate()   # the polite request, not a kill
+        self.refresh()
 
     def quitApp_(self, sender):
         NSApp.terminate_(self)
@@ -371,6 +401,47 @@ class DosoftApp(NSObject):
 
     def dispatchAction_(self, timer):
         self.onAction(timer.userInfo())
+
+    @objc.python_method
+    def queuePeek(self, down):
+        NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(
+            0, self, "dispatchPeek:", bool(down), False)
+
+    def dispatchPeek_(self, timer):
+        self.onPeek(bool(timer.userInfo()))
+
+    @objc.python_method
+    def onPeek(self, down):
+        """Hold to look somewhere else, release to land back where you were.
+
+        Anything you do while holding still works, so peek composes with the
+        rotation keys, the direct binds and the wheel.
+        """
+        cycle = self.scanner.cycle_list()
+        if down:
+            if not cycle:
+                return
+            index = self.scanner.index_of_focused()
+            self.peek_origin = (cycle[index]["name"]
+                                if 0 <= index < len(cycle) else None)
+            target = self.config.data.get("peek_target", "leader")
+            leader = self.config.data.get("leader_name", "")
+            if target == "leader" and leader:
+                self.scanner.focus_by_name(leader)
+            elif target == "prev":
+                self._step(-1)
+            else:
+                self._step(1)
+            return
+
+        origin, self.peek_origin = self.peek_origin, None
+        if not origin:
+            return
+        self.scanner.focus_by_name(origin)
+        for i, acc in enumerate(cycle):
+            if acc["name"] == origin:
+                self.current_idx = i
+                break
 
     @objc.python_method
     def onAction(self, name):

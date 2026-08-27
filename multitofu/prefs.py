@@ -9,14 +9,16 @@ from AppKit import (
 )
 from Foundation import NSObject, NSTimer
 
+from . import appnap
 from .i18n import SUPPORTED, language_name, set_language, t, team_display
+from .roles import ROLE_KEYS
 from .keys import MODIFIER_MASKS, describe
 from .radial import load_icon
 
 ROW_HEIGHT = 34
 HEADER_HEIGHT = 118
-WINDOW_W = 760
-WINDOW_H = 650
+WINDOW_W = 900
+WINDOW_H = 700
 
 
 class FlippedView(NSView):
@@ -89,9 +91,9 @@ class PrefsController(NSObject):
         content.addSubview_(label(t("global_shortcuts"), 20, 46, 260, 20, bold=True, size=13))
         specs = [("next", t("bind_next")), ("prev", t("bind_prev")),
                  ("leader", t("bind_leader")), ("refresh", t("bind_refresh")),
-                 ("prefs", t("bind_prefs"))]
+                 ("prefs", t("bind_prefs")), ("peek", t("bind_peek"))]
         for i, (key, title) in enumerate(specs):
-            x = 20 + (i % 2) * 370
+            x = 20 + (i % 2) * 430
             y = 74 + (i // 2) * 30
             content.addSubview_(label(title + t("colon"), x, y + 4, 175))
             btn = button(describe(self.app.config.data["binds"].get(key)),
@@ -134,18 +136,38 @@ class PrefsController(NSObject):
         content.addSubview_(button(t("rescan_button"), 630, 204, 110, 24,
                                    self, "rescan:"))
 
-        content.addSubview_(label(t("characters"), 20, 238, 200, 20, bold=True, size=13))
+        content.addSubview_(label(t("peek_target_label"), 20, 242, 150))
+        self.peek_popup = NSPopUpButton.alloc().initWithFrame_pullsDown_(
+            NSMakeRect(175, 238, 140, 24), False)
+        self.peek_targets = ["leader", "next", "prev"]
+        self.peek_popup.addItemsWithTitles_(
+            [t("peek_target_" + key) for key in self.peek_targets])
+        self.peek_popup.setTarget_(self)
+        self.peek_popup.setAction_("peekTargetChanged:")
+        content.addSubview_(self.peek_popup)
+
+        self.awake_check = NSButton.alloc().initWithFrame_(NSMakeRect(340, 238, 400, 24))
+        self.awake_check.setButtonType_(NSSwitchButton)
+        self.awake_check.setTitle_(t("awake_label"))
+        self.awake_check.setTarget_(self)
+        self.awake_check.setAction_("awakeToggled:")
+        content.addSubview_(self.awake_check)
+        content.addSubview_(label(t("awake_help"), 340, 262, WINDOW_W - 370, 34,
+                                  size=10, color=NSColor.secondaryLabelColor()))
+
+        content.addSubview_(label(t("characters"), 20, 306, 200, 20, bold=True, size=13))
         muted = NSColor.secondaryLabelColor()
-        for text, col_x, width in [(t("col_order"), 4, 60), (t("col_on"), 66, 40),
-                                   (t("col_character"), 124, 170),
-                                   (t("col_class"), 300, 110),
-                                   (t("col_team"), 415, 130),
-                                   (t("col_key"), 555, 150)]:
+        for text, col_x, width in [(t("col_order"), 4, 86), (t("col_on"), 96, 40),
+                                   (t("col_character"), 154, 140),
+                                   (t("col_class"), 300, 95),
+                                   (t("role_label"), 400, 125),
+                                   (t("col_team"), 532, 125),
+                                   (t("col_key"), 666, 150)]:
             content.addSubview_(
-                label(text, 16 + col_x, 262, width, 16, size=10, color=muted))
+                label(text, 16 + col_x, 336, width, 16, size=10, color=muted))
 
         scroll = NSScrollView.alloc().initWithFrame_(
-            NSMakeRect(16, 282, WINDOW_W - 32, WINDOW_H - 300))
+            NSMakeRect(16, 356, WINDOW_W - 32, WINDOW_H - 374))
         scroll.setHasVerticalScroller_(True)
         scroll.setDrawsBackground_(False)
         scroll.setAutoresizingMask_(2 | 16)  # width + height sizable
@@ -162,6 +184,10 @@ class PrefsController(NSObject):
         cfg = self.app.config.data
         self._update_status()
         self.wheel_popup.selectItemWithTitle_(cfg.get("wheel_modifier", "alt"))
+        target = cfg.get("peek_target", "leader")
+        if target in self.peek_targets:
+            self.peek_popup.selectItemAtIndex_(self.peek_targets.index(target))
+        self.awake_check.setState_(1 if appnap.is_disabled(self.app.config) else 0)
         code = cfg.get("language", "auto")
         if code in self.language_codes:
             self.language_popup.selectItemAtIndex_(self.language_codes.index(code))
@@ -182,17 +208,33 @@ class PrefsController(NSObject):
         self.bind_buttons = {}
 
         teams = cfg.get("teams", ["Team 1"])
+        rank = {}
+        for acc in accounts:
+            if not acc["is_menu"]:
+                rank[acc["name"]] = len(rank) + 1
         height = max(10, len(accounts) * ROW_HEIGHT + 10)
         self.rows_view.setFrameSize_((WINDOW_W - 40, height))
 
         for i, acc in enumerate(accounts):
             y = i * ROW_HEIGHT + 4
-            self.rows_view.addSubview_(
-                button("^", 4, y, 26, 24, self, "moveUp:", i))
-            self.rows_view.addSubview_(
-                button("v", 32, y, 26, 24, self, "moveDown:", i))
+            # type a number to place a character, which beats clicking an
+            # arrow six times to sort a team by initiative
+            position = NSTextField.alloc().initWithFrame_(NSMakeRect(4, y, 32, 24))
+            position.setStringValue_("" if acc["is_menu"] else str(rank.get(acc["name"], "")))
+            position.setAlignment_(1)  # centred
+            position.setEditable_(not acc["is_menu"])
+            position.setEnabled_(not acc["is_menu"])
+            position.setTarget_(self)
+            position.setAction_("positionChanged:")
+            position.setTag_(i)
+            self.rows_view.addSubview_(position)
 
-            check = NSButton.alloc().initWithFrame_(NSMakeRect(66, y, 22, 24))
+            self.rows_view.addSubview_(
+                button("\u25b2", 42, y, 24, 24, self, "moveUp:", i))
+            self.rows_view.addSubview_(
+                button("\u25bc", 68, y, 24, 24, self, "moveDown:", i))
+
+            check = NSButton.alloc().initWithFrame_(NSMakeRect(96, y, 22, 24))
             check.setButtonType_(NSSwitchButton)
             check.setTitle_("")
             check.setState_(1 if acc["active"] else 0)
@@ -201,19 +243,30 @@ class PrefsController(NSObject):
             check.setTag_(i)
             self.rows_view.addSubview_(check)
 
-            icon_view = NSImageView.alloc().initWithFrame_(NSMakeRect(92, y, 24, 24))
+            icon_view = NSImageView.alloc().initWithFrame_(NSMakeRect(122, y, 24, 24))
             icon_view.setImage_(load_icon(acc.get("slug")))
             icon_view.setImageScaling_(NSImageScaleProportionallyUpOrDown)
             self.rows_view.addSubview_(icon_view)
 
             self.rows_view.addSubview_(
-                label(acc["name"], 124, y + 4, 170, 18, bold=not acc["is_menu"]))
+                label(acc["name"], 154, y + 4, 140, 18, bold=not acc["is_menu"]))
             self.rows_view.addSubview_(
-                label(acc.get("class_name") or "-", 300, y + 4, 110, 18, size=11,
+                label(acc.get("class_name") or "-", 300, y + 4, 95, 18, size=11,
                       color=NSColor.secondaryLabelColor()))
 
+            role_popup = NSPopUpButton.alloc().initWithFrame_pullsDown_(
+                NSMakeRect(400, y, 125, 24), False)
+            role_popup.addItemsWithTitles_([t("role_" + key) for key in ROLE_KEYS])
+            current_role = cfg.get("roles", {}).get(acc["name"], "none")
+            role_popup.selectItemAtIndex_(
+                ROLE_KEYS.index(current_role) if current_role in ROLE_KEYS else 0)
+            role_popup.setTarget_(self)
+            role_popup.setAction_("roleChanged:")
+            role_popup.setTag_(i)
+            self.rows_view.addSubview_(role_popup)
+
             popup = NSPopUpButton.alloc().initWithFrame_pullsDown_(
-                NSMakeRect(415, y, 130, 24), False)
+                NSMakeRect(532, y, 125, 24), False)
             popup.addItemsWithTitles_([team_display(name) for name in teams])
             current = acc["team"] if acc["team"] in teams else teams[0]
             popup.selectItemAtIndex_(teams.index(current))
@@ -223,7 +276,7 @@ class PrefsController(NSObject):
             self.rows_view.addSubview_(popup)
 
             bind = cfg.get("character_binds", {}).get(acc["name"])
-            btn = button(describe(bind), 555, y, 150, 24, self, "recordChar:", i)
+            btn = button(describe(bind), 666, y, 150, 24, self, "recordChar:", i)
             self.bind_buttons[acc["name"]] = btn
             self.rows_view.addSubview_(btn)
 
@@ -315,6 +368,63 @@ class PrefsController(NSObject):
         self.app.config.save()
         self.app.refresh()
 
+
+    def positionChanged_(self, sender):
+        accounts = self.app.scanner.accounts
+        if sender.tag() >= len(accounts):
+            return
+        account = accounts[sender.tag()]
+        if account["is_menu"]:
+            return
+        try:
+            wanted = int(sender.stringValue().strip())
+        except ValueError:
+            self.reload()
+            return
+        ordered = [a["name"] for a in accounts if not a["is_menu"]]
+        if account["name"] not in ordered:
+            return
+        wanted = max(1, min(len(ordered), wanted)) - 1
+        ordered.remove(account["name"])
+        ordered.insert(wanted, account["name"])
+        self._apply_order(ordered)
+
+    @objc.python_method
+    def _apply_order(self, ordered):
+        """Rewrite the saved order, keeping characters that are offline right
+        now in the slots they already hold."""
+        saved = self.app.config.data.get("custom_order", [])
+        slots = [i for i, name in enumerate(saved) if name in ordered]
+        for slot, name in zip(slots, ordered):
+            saved[slot] = name
+        for name in ordered:
+            if name not in saved:
+                saved.append(name)
+        self.app.config.data["custom_order"] = saved
+        self.app.config.save()
+        self.app.refresh()
+
+    def roleChanged_(self, sender):
+        accounts = self.app.scanner.accounts
+        if sender.tag() >= len(accounts):
+            return
+        name = accounts[sender.tag()]["name"]
+        role = ROLE_KEYS[sender.indexOfSelectedItem()]
+        self.app.config.data.setdefault("roles", {})[name] = role
+        accounts[sender.tag()]["role"] = role
+        self.app.config.save()
+
+    def peekTargetChanged_(self, sender):
+        self.app.config.data["peek_target"] = \
+            self.peek_targets[sender.indexOfSelectedItem()]
+        self.app.config.save()
+
+    def awakeToggled_(self, sender):
+        wanted = bool(sender.state())
+        appnap.set_disabled(self.app.config, wanted)
+        self.app.config.data["keep_clients_awake"] = wanted
+        self.app.config.save()
+        sender.setState_(1 if appnap.is_disabled(self.app.config) else 0)
 
     def languageChanged_(self, sender):
         code = self.language_codes[sender.indexOfSelectedItem()]

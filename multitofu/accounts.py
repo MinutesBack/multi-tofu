@@ -157,13 +157,25 @@ class Scanner:
         cfg = self.config.data
         rows = []
         menu_counter = 1
+        seen_names = {}
         for pid, win, title in self._raw_windows():
             pseudo, klass, is_menu = self.parse_title(title, menu_counter)
             if is_menu:
-                menu_counter += 1
                 if cfg.get("hide_login_windows"):
+                    menu_counter += 1
                     continue
-            if klass:
+                # skip a number a logged in character already answers to
+                while pseudo in seen_names:
+                    menu_counter += 1
+                    pseudo = self.parse_title(title, menu_counter)[0]
+                menu_counter += 1
+            # Teams, roles, binds and rotation order are all stored per name,
+            # so two windows must never answer to the same one.
+            count = seen_names.get(pseudo, 0) + 1
+            seen_names[pseudo] = count
+            if count > 1:
+                pseudo = f"{pseudo} ({count})"
+            if klass and not is_menu:
                 cfg["classes"][pseudo] = klass
             else:
                 klass = cfg["classes"].get(pseudo)
@@ -176,12 +188,15 @@ class Scanner:
                 "slug": to_slug(klass),
                 "active": bool(cfg["accounts_state"].get(pseudo, True)),
                 "team": cfg["accounts_team"].get(pseudo, cfg.get("teams", ["Team 1"])[0]),
+                "role": cfg.get("roles", {}).get(pseudo, "none"),
                 "is_menu": is_menu,
             }))
 
+        # A login placeholder is positional. Its number shifts the moment a
+        # neighbour logs in, so it must never earn a slot in the saved order.
         order = cfg.get("custom_order", [])
         for row in rows:
-            if row["name"] not in order:
+            if not row["is_menu"] and row["name"] not in order:
                 order.append(row["name"])
         if len(order) > MAX_REMEMBERED:
             live = {r["name"] for r in rows}
@@ -191,7 +206,15 @@ class Scanner:
         cfg["custom_order"] = order
         self.config.save()
 
-        rows.sort(key=lambda r: order.index(r["name"]))
+        def position(row):
+            if row["is_menu"]:
+                return (1, row["pid"], "")
+            try:
+                return (0, order.index(row["name"]), "")
+            except ValueError:
+                return (0, len(order), row["name"])
+
+        rows.sort(key=position)
         self.accounts = rows
 
         leader_name = cfg.get("leader_name", "")

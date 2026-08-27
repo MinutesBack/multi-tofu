@@ -4,6 +4,9 @@ import os
 import sys
 
 import objc
+
+from .i18n import t
+from .roles import colour_for
 from AppKit import (
     NSAttributedString, NSBezierPath, NSColor, NSCompositingOperationSourceOver,
     NSFont, NSFontAttributeName, NSForegroundColorAttributeName, NSGraphicsContext,
@@ -49,12 +52,15 @@ def rgb(r, g, b, a=1.0):
 # Sticker-book palette: grape wheel, cream outlines, a sunny wedge under the
 # cursor. Bright enough to read over a busy game frame without washing out the
 # class sprites sitting on top of it.
-GRAPE = rgb(74, 64, 118, 0.95)
-GRAPE_ALT = rgb(101, 88, 158, 0.95)
+GRAPE_RGB = (74, 64, 118)
+GRAPE_ALT_RGB = (101, 88, 158)
+GRAPE = rgb(*GRAPE_RGB, 0.95)
+GRAPE_ALT = rgb(*GRAPE_ALT_RGB, 0.95)
 SUNNY = rgb(255, 201, 74, 0.98)
 CREAM = rgb(255, 246, 232, 0.95)
 MINT = rgb(95, 224, 176, 1.0)
 INK = rgb(46, 38, 80, 1.0)
+MUTED = rgb(120, 110, 160, 1.0)
 BADGE = rgb(255, 246, 232, 0.30)
 
 
@@ -85,6 +91,11 @@ def load_icon(slug):
         slug = "character"
     if slug in _image_cache:
         return _image_cache[slug]
+    if slug == "__logo__":
+        path = os.path.join(ASSETS, "logo.png")
+        image = NSImage.alloc().initWithContentsOfFile_(path)
+        _image_cache[slug] = image
+        return image
     path = os.path.join(SKIN_DIR, f"{slug}.png")
     if not os.path.exists(path):
         path = os.path.join(SKIN_DIR, "character.png")
@@ -117,6 +128,12 @@ def cg_to_ns(x, y):
         return x, y
     primary_height = screens[0].frame().size.height
     return x, primary_height - y
+
+
+def draw_centered_image(image, x, y, size):
+    image.drawInRect_fromRect_operation_fraction_(
+        NSMakeRect(x - size / 2.0, y - size / 2.0, size, size),
+        NSMakeRect(0, 0, 0, 0), NSCompositingOperationSourceOver, 1.0)
 
 
 def outlined(text, size, fill, stroke=INK, width=-3.5):
@@ -161,7 +178,9 @@ class WheelView(NSView):
         center = NSMakePoint(cx, cy)
         count = len(self.entries)
         step = 360.0 / count
-        start = 90.0 - step / 2.0  # first wedge centred on straight up
+        # Cocoa angles grow anticlockwise. Subtract so the rotation reads
+        # clockwise, the way anyone expects a numbered wheel to run.
+        top = 90.0 + step / 2.0
 
         context = NSGraphicsContext.currentContext()
 
@@ -180,8 +199,8 @@ class WheelView(NSView):
         context.restoreGraphicsState()
 
         for i in range(count):
-            a0 = start + step * i
-            a1 = a0 + step
+            a1 = top - step * i
+            a0 = a1 - step
             wedge = NSBezierPath.bezierPath()
             wedge.appendBezierPathWithArcWithCenter_radius_startAngle_endAngle_(
                 center, self.outer - 5, a0, a1)
@@ -193,33 +212,49 @@ class WheelView(NSView):
             else:
                 (GRAPE if i % 2 == 0 else GRAPE_ALT).set()
             wedge.fill()
+
+            # role colour rides the outer rim. Tinting the whole wedge washes
+            # the labels out, a rim reads just as fast and keeps them legible.
+            tint = colour_for(self.entries[i].get("role"))
+            if tint is not None:
+                rim = NSBezierPath.bezierPath()
+                rim.appendBezierPathWithArcWithCenter_radius_startAngle_endAngle_(
+                    center, self.outer - 5, a0, a1)
+                rim.appendBezierPathWithArcWithCenter_radius_startAngle_endAngle_clockwise_(
+                    center, self.outer - 17, a1, a0, True)
+                rim.closePath()
+                rgb(*tint, 0.95).set()
+                rim.fill()
+
             CREAM.set()
             wedge.setLineWidth_(3.5)
             wedge.setLineJoinStyle_(1)  # round
             wedge.stroke()
 
-        mid = (self.outer + self.inner) / 2.0 - 2
+        # Segments carry the class icon and the role colour, nothing else.
+        # Horizontal text cannot share a wedge with an icon at every angle
+        # without colliding with one or the other, so the name goes in the hub
+        # where there is room for it at any team size.
+        band = self.outer - self.inner
+        icon_radius = self.inner + band * 0.52
+        icon_size = min(band * 0.46, 54.0)
         for i, entry in enumerate(self.entries):
-            angle = math.radians(start + step * i + step / 2.0)
-            px = cx + mid * math.cos(angle)
-            py = cy + mid * math.sin(angle)
+            angle = math.radians(top - step * i - step / 2.0)
+            ix = cx + icon_radius * math.cos(angle)
+            iy = cy + icon_radius * math.sin(angle)
 
+            badge_r = icon_size * 0.62
             badge = NSBezierPath.bezierPathWithOvalInRect_(
-                NSMakeRect(px - 22, py - 16, 44, 44))
+                NSMakeRect(ix - badge_r, iy - badge_r, badge_r * 2, badge_r * 2))
             BADGE.set()
             badge.fill()
 
             icon = load_icon(entry.get("slug"))
             if icon is not None:
-                size = 38.0
                 icon.drawInRect_fromRect_operation_fraction_(
-                    NSMakeRect(px - size / 2.0, py - size / 2.0 + 8, size, size),
+                    NSMakeRect(ix - icon_size / 2.0, iy - icon_size / 2.0,
+                               icon_size, icon_size),
                     NSMakeRect(0, 0, 0, 0), NSCompositingOperationSourceOver, 1.0)
-
-            label_color = INK if i == self.hover else CREAM
-            outline = CREAM if i == self.hover else INK
-            draw_centered(outlined(entry["name"][:12], 11.5, label_color, outline),
-                          px, py - 19)
 
         # hub
         hub = NSBezierPath.bezierPathWithOvalInRect_(
@@ -232,10 +267,19 @@ class WheelView(NSView):
         hub.stroke()
 
         if 0 <= self.hover < count:
-            text = self.entries[self.hover]["name"][:14]
+            entry = self.entries[self.hover]
+            draw_centered(outlined(entry["name"][:14], 14.0, INK, CREAM, -2.0),
+                          cx, cy + 8)
+            klass = entry.get("class_name")
+            if klass:
+                draw_centered(outlined(klass[:16], 10.5, MUTED, CREAM, -1.5),
+                              cx, cy - 12)
         else:
-            text = "Multi-Tofu"
-        draw_centered(outlined(text, 12.5, INK, CREAM, -2.0), cx, cy)
+            logo = load_icon("__logo__")
+            if logo is not None:
+                draw_centered_image(logo, cx, cy + 10, self.inner * 0.72)
+            draw_centered(outlined(t("wheel_cancel"), 9.5, MUTED, CREAM, -1.5),
+                          cx, cy - self.inner * 0.48)
 
 
 class Wheel:
@@ -312,7 +356,7 @@ class Wheel:
             count = len(self.entries)
             step = 360.0 / count
             angle = math.degrees(math.atan2(dy, dx))
-            offset = (angle - (90.0 - step / 2.0)) % 360.0
+            offset = ((90.0 + step / 2.0) - angle) % 360.0
             new_hover = int(offset // step) % count
         if new_hover != self.hover:
             self.hover = new_hover

@@ -15,11 +15,14 @@ class HotkeyManager:
     on_mouse(x, y)           pointer moved while the wheel modifier is held
     """
 
-    def __init__(self, config, on_action, on_modifier=None, on_mouse=None):
+    def __init__(self, config, on_action, on_modifier=None, on_mouse=None,
+                 on_peek=None):
         self.config = config
         self.on_action = on_action
         self.on_modifier = on_modifier
         self.on_mouse = on_mouse
+        self.on_peek = on_peek
+        self.peek_down = False
         self.tap = None
         self.source = None
         self.modifier_down = False
@@ -31,6 +34,7 @@ class HotkeyManager:
     def _all_binds(self):
         cfg = self.config.data
         binds = dict(cfg.get("binds", {}))
+        binds.pop("peek", None)  # handled on its own, it needs the key release
         out = [(f"action:{name}", bind) for name, bind in binds.items()]
         for pseudo, bind in cfg.get("character_binds", {}).items():
             out.append((f"char:{pseudo}", bind))
@@ -45,6 +49,7 @@ class HotkeyManager:
 
     def start(self):
         mask = (Quartz.CGEventMaskBit(Quartz.kCGEventKeyDown)
+                | Quartz.CGEventMaskBit(Quartz.kCGEventKeyUp)
                 | Quartz.CGEventMaskBit(Quartz.kCGEventFlagsChanged)
                 | Quartz.CGEventMaskBit(Quartz.kCGEventMouseMoved))
         self.tap = Quartz.CGEventTapCreate(
@@ -102,9 +107,32 @@ class HotkeyManager:
                 self.on_mouse(loc.x, loc.y)
             return event
 
+        peek = self.config.data.get("binds", {}).get("peek")
+        peek_code = peek.get("keycode") if peek else None
+
+        if event_type == Quartz.kCGEventKeyUp:
+            if not self.peek_down:
+                return event
+            keycode = int(Quartz.CGEventGetIntegerValueField(
+                event, Quartz.kCGKeyboardEventKeycode))
+            if peek_code is not None and keycode == peek_code:
+                self.peek_down = False
+                if self.on_peek:
+                    self.on_peek(False)
+                return None
+            return event
+
         if event_type == Quartz.kCGEventKeyDown:
             keycode = int(Quartz.CGEventGetIntegerValueField(
                 event, Quartz.kCGKeyboardEventKeycode))
+            if self.capture is None and peek_code is not None \
+                    and keycode == peek_code \
+                    and clean_flags(peek.get("flags", 0)) == flags:
+                if not self.peek_down:
+                    self.peek_down = True
+                    if self.on_peek:
+                        self.on_peek(True)
+                return None  # also swallows the auto repeat
             if self.capture is not None:
                 callback, self.capture = self.capture, None
                 callback(keycode, flags)
