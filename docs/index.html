@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Dofus Multi-Account Switcher for Mac | Multi-Tofu</title>
+  <meta name="description" content="Free open source Dofus multi-account tool for macOS. Switch clients instantly with F1, a radial character wheel and team rotation. Apple Silicon and Intel.">
+  <link rel="canonical" href="https://minutesback.github.io/multi-tofu/">
+  <link rel="alternate" hreflang="en" href="https://minutesback.github.io/multi-tofu/">
+  <link rel="alternate" hreflang="fr" href="https://minutesback.github.io/multi-tofu/fr/">
+  <link rel="alternate" hreflang="es" href="https://minutesback.github.io/multi-tofu/es/">
+  <link rel="alternate" hreflang="pt" href="https://minutesback.github.io/multi-tofu/pt/">
+  <link rel="alternate" hreflang="x-default" href="https://minutesback.github.io/multi-tofu/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Multi-Tofu">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:title" content="Dofus Multi-Account Switcher for Mac | Multi-Tofu">
+  <meta property="og:description" content="Free open source Dofus multi-account tool for macOS. Switch clients instantly with F1, a radial character wheel and team rotation. Apple Silicon and Intel.">
+  <meta property="og:url" content="https://minutesback.github.io/multi-tofu/">
+  <meta property="og:image" content="https://minutesback.github.io/multi-tofu/assets/og-card.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Dofus Multi-Account Switcher for Mac | Multi-Tofu">
+  <meta name="twitter:description" content="Free open source Dofus multi-account tool for macOS. Switch clients instantly with F1, a radial character wheel and team rotation. Apple Silicon and Intel.">
+  <meta name="twitter:image" content="https://minutesback.github.io/multi-tofu/assets/og-card.png">
+  <meta name="theme-color" content="#4a4076">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "SoftwareApplication", "name": "Multi-Tofu", "applicationCategory": "UtilitiesApplication", "applicationSubCategory": "Game utility", "operatingSystem": "macOS 12 or later", "softwareVersion": "0.1.0", "url": "https://minutesback.github.io/multi-tofu/", "downloadUrl": "https://github.com/MinutesBack/multi-tofu/releases/latest", "installUrl": "https://github.com/MinutesBack/multi-tofu/releases", "codeRepository": "https://github.com/MinutesBack/multi-tofu", "license": "https://www.apache.org/licenses/LICENSE-2.0", "isAccessibleForFree": true, "inLanguage": ["en", "fr", "es", "pt"], "description": "Free open source Dofus multi-account tool for macOS. Switch clients instantly with F1, a radial character wheel and team rotation. Apple Silicon and Intel.", "image": "https://minutesback.github.io/multi-tofu/assets/og-card.png", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "author": {"@type": "Organization", "name": "MinutesBack", "url": "https://github.com/MinutesBack"}}</script>
+  <style>
+:root{--grape:#4a4076;--grape-deep:#342c58;--grape-soft:#655a9e;--cream:#fff6e8;
+--sunny:#ffc94a;--mint:#5fe0b0;--ink:#2e2650;--muted:#6b6390;--card:#ffffff}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--cream);color:var(--ink);
+font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,system-ui,sans-serif;
+-webkit-font-smoothing:antialiased}
+a{color:var(--grape);text-decoration:none}
+img{max-width:100%;height:auto}
+a:hover{text-decoration:underline}
+.wrap{max-width:1040px;margin:0 auto;padding:0 24px}
+nav{display:flex;align-items:center;justify-content:space-between;gap:16px;
+padding:20px 0;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px;font-weight:800;font-size:20px;color:var(--cream)}
+.brand img{width:40px;height:40px;border-radius:11px}
+.langs{display:flex;gap:6px;flex-wrap:wrap}
+.langs a,.langs span{font-size:13px;padding:6px 12px;border-radius:999px;
+background:rgba(255,246,232,.14);color:var(--cream)}
+.langs span{background:var(--sunny);color:var(--ink);font-weight:700}
+.langs a:hover{background:rgba(255,246,232,.28);text-decoration:none}
+header{background:var(--grape);background:linear-gradient(170deg,#5a4f92 0%,#4a4076 55%,#3b3363 100%);
+color:var(--cream);padding-bottom:64px}
+.hero{display:grid;grid-template-columns:1.05fr .95fr;gap:48px;align-items:center;padding:36px 0 0}
+.hero h1{font-size:42px;line-height:1.12;margin:18px 0 14px;letter-spacing:-.5px}
+.hero p{font-size:18px;color:rgba(255,246,232,.86);margin:0 0 28px;max-width:36em}
+.hero-logo{width:96px;height:96px;border-radius:26px;box-shadow:0 12px 32px rgba(0,0,0,.28)}
+.cta{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.btn{display:inline-block;background:var(--sunny);color:var(--ink);font-weight:800;
+padding:15px 28px;border-radius:14px;font-size:17px;box-shadow:0 8px 20px rgba(0,0,0,.22)}
+.btn:hover{background:#ffd77a;text-decoration:none}
+.btn-ghost{color:var(--cream);border:2px solid rgba(255,246,232,.4);padding:13px 24px;
+border-radius:14px;font-weight:700}
+.btn-ghost:hover{background:rgba(255,246,232,.12);text-decoration:none}
+.sub{font-size:14px;color:rgba(255,246,232,.7);margin-top:14px}
+.hero-art img{width:100%;max-width:420px;display:block;margin:0 auto;
+filter:drop-shadow(0 18px 38px rgba(0,0,0,.32))}
+main{padding:64px 0 0}
+section{margin-bottom:64px}
+h2{font-size:28px;margin:0 0 20px;letter-spacing:-.3px}
+h3{font-size:17px;margin:0 0 6px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px}
+.card{background:var(--card);border-radius:18px;padding:22px 24px;
+box-shadow:0 2px 10px rgba(46,38,80,.07)}
+.card p{margin:0;color:var(--muted);font-size:15px}
+.prose{max-width:62ch;color:#4a4270}
+.steps{counter-reset:s;display:grid;gap:16px}
+.step{background:var(--card);border-radius:18px;padding:20px 24px 20px 66px;position:relative;
+box-shadow:0 2px 10px rgba(46,38,80,.07)}
+.step:before{counter-increment:s;content:counter(s);position:absolute;left:20px;top:20px;
+width:32px;height:32px;border-radius:50%;background:var(--mint);color:var(--ink);
+font-weight:800;display:grid;place-items:center}
+table{width:100%;border-collapse:collapse;background:var(--card);border-radius:18px;
+overflow:hidden;box-shadow:0 2px 10px rgba(46,38,80,.07)}
+td{padding:13px 22px;border-bottom:1px solid #efeaf7}
+tr:last-child td{border-bottom:none}
+td:last-child{text-align:right}
+kbd{background:var(--grape);color:var(--cream);border-radius:7px;padding:3px 10px;
+font:600 13px ui-monospace,SFMono-Regular,Menlo,monospace}
+.note{font-size:14px;color:var(--muted);margin-top:14px}
+.shot{width:100%;border-radius:16px;box-shadow:0 8px 28px rgba(46,38,80,.16);display:block}
+ul.plain{list-style:none;padding:0;margin:0;display:grid;gap:10px}
+ul.plain li{background:var(--card);border-radius:12px;padding:12px 18px;
+box-shadow:0 2px 8px rgba(46,38,80,.06);color:#4a4270}
+.safe{background:var(--grape-deep);color:var(--cream);border-radius:20px;padding:32px 34px}
+.safe h2{color:var(--cream)}
+.safe p{color:rgba(255,246,232,.85);max-width:62ch;margin:0}
+footer{background:var(--grape-deep);color:rgba(255,246,232,.7);padding:40px 0;font-size:14px}
+footer a{color:var(--cream)}
+.flinks{display:flex;gap:20px;flex-wrap:wrap;margin-bottom:18px}
+.disclaimer{max-width:70ch;font-size:13px;line-height:1.6;opacity:.75}
+@media(max-width:820px){.hero{grid-template-columns:1fr;gap:28px;text-align:left}
+.hero h1{font-size:32px}main{padding-top:44px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <nav>
+      <span class="brand"><img src="assets/logo-128.png" alt="The Multi-Tofu app icon, a small round cream bird on a purple background">Multi-Tofu</span>
+      <span class="langs"><span>English</span><a href="https://minutesback.github.io/multi-tofu/fr/" hreflang="fr">Français</a><a href="https://minutesback.github.io/multi-tofu/es/" hreflang="es">Español</a><a href="https://minutesback.github.io/multi-tofu/pt/" hreflang="pt">Português</a></span>
+    </nav>
+    <div class="hero">
+      <div>
+        <img class="hero-logo" src="assets/logo.png" alt="The Multi-Tofu app icon, a small round cream bird on a purple background">
+        <h1>Play Dofus multi-account on a Mac without fighting your windows.</h1>
+        <p>Multi-Tofu switches between your Dofus clients with a single key. It reads each window and puts the right character in front, so you stop hunting through Mission Control mid fight.</p>
+        <div class="cta">
+          <a class="btn" href="https://github.com/MinutesBack/multi-tofu/releases/latest">Download for macOS</a>
+          <a class="btn-ghost" href="https://github.com/MinutesBack/multi-tofu">View the source</a>
+        </div>
+        <p class="sub">Free and open source. Apple Silicon and Intel. Version 0.1.0.</p>
+      </div>
+      <div class="hero-art">
+        <img src="wheel.png" alt="The Multi-Tofu character wheel, six Dofus characters in a circle with the hovered one highlighted" width="640" height="640">
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section>
+    <h2>What it does</h2>
+    <div class="grid">
+      <div class="card"><h3>Instant switch</h3><p>F1 and F2 walk your rotation, F3 jumps straight back to your leader. One key, no mouse, no Mission Control.</p></div>
+      <div class="card"><h3>Character wheel</h3><p>Hold Option and a wheel appears under your cursor with a class icon for every character. Move, release, that client is in front.</p></div>
+      <div class="card"><h3>Teams</h3><p>Split your characters into teams and cycle only inside the active one. Useful when you run a dungeon group and leave the rest parked.</p></div>
+      <div class="card"><h3>Direct keys</h3><p>Bind one fixed key per character. F5 always goes to your Iop, whatever the rotation is doing.</p></div>
+      <div class="card"><h3>Real names</h3><p>Character names are read live from the game window. Nothing to type in, nothing to keep updated.</p></div>
+      <div class="card"><h3>Four languages</h3><p>English, French, Spanish and Portuguese, following your system language.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>It learns your characters by itself</h2>
+    <p class="prose">You never type a character name. Multi-Tofu reads the Dofus window title, so the moment a character logs in their real name appears in the wheel, in the menu bar and in the settings list. A client that is open but still sitting on the login screen has no character on it yet, so it shows as Account 1, Account 2 and so on. Those stay clickable in the menu, so you can jump to one and log it in, but they are kept out of the F1 rotation. A keypress never lands you on a window with no character on it.</p>
+  </section>
+
+  <section>
+    <img class="shot" src="preferences.png" alt="The Multi-Tofu settings window showing shortcuts and the detected character list" loading="lazy" width="1520" height="1085">
+  </section>
+
+  <section>
+    <h2>Install in about a minute</h2>
+    <div class="steps">
+      <div class="step"><h3>Download and unzip</h3><p style="margin:0;color:var(--muted);font-size:15px">Grab the zip from the releases page and drag Multi-Tofu into your Applications folder.</p></div>
+      <div class="step"><h3>Right click, Open</h3><p style="margin:0;color:var(--muted);font-size:15px">The app is not signed with a paid Apple developer account, so the first launch needs a right click then Open. After that it opens normally.</p></div>
+      <div class="step"><h3>Allow Accessibility</h3><p style="margin:0;color:var(--muted);font-size:15px">macOS asks once. Multi-Tofu needs it to read window titles and to hear your shortcuts. Switch it on and the shortcuts come alive a couple of seconds later, no restart.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Default shortcuts</h2>
+    <table>
+      <tr><td>Next character</td><td><kbd>F1</kbd></td></tr>
+      <tr><td>Previous character</td><td><kbd>F2</kbd></td></tr>
+      <tr><td>Focus leader</td><td><kbd>F3</kbd></td></tr>
+      <tr><td>Rescan windows</td><td><kbd>F4</kbd></td></tr>
+      <tr><td>Character wheel</td><td><kbd>hold Option</kbd></td></tr>
+      <tr><td>Open settings</td><td><kbd>Control + F1</kbd></td></tr>
+    </table>
+    <p class="note">All rebindable. Shortcuts are stored as physical keycodes, so they keep working if you switch between AZERTY and QWERTY.</p>
+  </section>
+
+  <section class="safe">
+    <h2>It does not automate anything</h2>
+    <p>Multi-Tofu brings windows to the front. That is the whole feature. There is no bot, no packet reading, no memory injection, and no broadcasting one keystroke to several clients at once. Every action still comes from you, in one client at a time. The code is public, so you do not have to take that on trust.</p>
+  </section>
+
+  <section>
+    <h2>Why this exists</h2>
+    <p class="prose">The Windows crowd has Dosoft and Organizer. On a Mac there was nothing, and the closest project was archived in August 2026. Dosoft is Apache 2.0 but built entirely on the Win32 API, so none of it ports. This is a fresh implementation on the macOS Accessibility API, a CGEventTap for the shortcuts, and AppKit for the wheel, reusing the class artwork and the feature design under that licence.</p>
+  </section>
+
+  <section>
+    <h2>Requirements</h2>
+    <ul class="plain">
+      <li>macOS 12 or later</li>
+      <li>Dofus 3 (Unity), the client the Ankama Launcher installs</li>
+      <li>Apple Silicon or Intel, one universal build</li>
+      <li>Windowed or borderless mode, the wheel does not draw over exclusive fullscreen</li>
+    </ul>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="flinks">
+      <a href="https://github.com/MinutesBack/multi-tofu#readme">Documentation</a>
+      <a href="https://github.com/MinutesBack/multi-tofu/issues">Report a problem</a>
+      <a href="https://github.com/MinutesBack/multi-tofu/blob/main/LICENSE">Apache 2.0</a>
+      <a href="https://github.com/MinutesBack/multi-tofu/releases">Download for macOS</a>
+    </div>
+    <p class="disclaimer">Multi-Tofu is not affiliated with, endorsed by, or sponsored by Ankama Games. DOFUS and all related names and artwork are the property of Ankama Games.</p>
+  </div>
+</footer>
+</body>
+</html>

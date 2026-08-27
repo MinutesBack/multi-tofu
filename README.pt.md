@@ -3,7 +3,7 @@
 Gerenciador multiconta de Dofus para macOS. Troca instantânea entre clientes,
 roda de personagens e times, para Dofus 3 (Unity).
 
-**[English](README.md)** · **[Français](README.fr.md)** · **[Español](README.es.md)** · **Português**
+**[Site](https://minutesback.github.io/multi-tofu/pt/)** · **[English](README.md)** · **[Français](README.fr.md)** · **[Español](README.es.md)** · **Português**
 
 Port independente para macOS do [Dosoft](https://www.dosoft.fr), que só existe
 no Windows. Nada do código Windows aproveita, ele é feito sobre a API Win32,

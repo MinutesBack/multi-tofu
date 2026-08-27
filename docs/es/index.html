@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Multicuenta de Dofus para Mac | Multi-Tofu</title>
+  <meta name="description" content="Herramienta multicuenta de Dofus gratuita y de código abierto para macOS. Cambia de cliente con F1, rueda de personajes y equipos. Apple Silicon e Intel.">
+  <link rel="canonical" href="https://minutesback.github.io/multi-tofu/es/">
+  <link rel="alternate" hreflang="en" href="https://minutesback.github.io/multi-tofu/">
+  <link rel="alternate" hreflang="fr" href="https://minutesback.github.io/multi-tofu/fr/">
+  <link rel="alternate" hreflang="es" href="https://minutesback.github.io/multi-tofu/es/">
+  <link rel="alternate" hreflang="pt" href="https://minutesback.github.io/multi-tofu/pt/">
+  <link rel="alternate" hreflang="x-default" href="https://minutesback.github.io/multi-tofu/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Multi-Tofu">
+  <meta property="og:locale" content="es_ES">
+  <meta property="og:title" content="Multicuenta de Dofus para Mac | Multi-Tofu">
+  <meta property="og:description" content="Herramienta multicuenta de Dofus gratuita y de código abierto para macOS. Cambia de cliente con F1, rueda de personajes y equipos. Apple Silicon e Intel.">
+  <meta property="og:url" content="https://minutesback.github.io/multi-tofu/es/">
+  <meta property="og:image" content="https://minutesback.github.io/multi-tofu/assets/og-card.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Multicuenta de Dofus para Mac | Multi-Tofu">
+  <meta name="twitter:description" content="Herramienta multicuenta de Dofus gratuita y de código abierto para macOS. Cambia de cliente con F1, rueda de personajes y equipos. Apple Silicon e Intel.">
+  <meta name="twitter:image" content="https://minutesback.github.io/multi-tofu/assets/og-card.png">
+  <meta name="theme-color" content="#4a4076">
+  <link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png">
+  <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "SoftwareApplication", "name": "Multi-Tofu", "applicationCategory": "UtilitiesApplication", "applicationSubCategory": "Game utility", "operatingSystem": "macOS 12 or later", "softwareVersion": "0.1.0", "url": "https://minutesback.github.io/multi-tofu/es/", "downloadUrl": "https://github.com/MinutesBack/multi-tofu/releases/latest", "installUrl": "https://github.com/MinutesBack/multi-tofu/releases", "codeRepository": "https://github.com/MinutesBack/multi-tofu", "license": "https://www.apache.org/licenses/LICENSE-2.0", "isAccessibleForFree": true, "inLanguage": ["en", "fr", "es", "pt"], "description": "Herramienta multicuenta de Dofus gratuita y de código abierto para macOS. Cambia de cliente con F1, rueda de personajes y equipos. Apple Silicon e Intel.", "image": "https://minutesback.github.io/multi-tofu/assets/og-card.png", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "author": {"@type": "Organization", "name": "MinutesBack", "url": "https://github.com/MinutesBack"}}</script>
+  <style>
+:root{--grape:#4a4076;--grape-deep:#342c58;--grape-soft:#655a9e;--cream:#fff6e8;
+--sunny:#ffc94a;--mint:#5fe0b0;--ink:#2e2650;--muted:#6b6390;--card:#ffffff}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--cream);color:var(--ink);
+font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,system-ui,sans-serif;
+-webkit-font-smoothing:antialiased}
+a{color:var(--grape);text-decoration:none}
+img{max-width:100%;height:auto}
+a:hover{text-decoration:underline}
+.wrap{max-width:1040px;margin:0 auto;padding:0 24px}
+nav{display:flex;align-items:center;justify-content:space-between;gap:16px;
+padding:20px 0;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px;font-weight:800;font-size:20px;color:var(--cream)}
+.brand img{width:40px;height:40px;border-radius:11px}
+.langs{display:flex;gap:6px;flex-wrap:wrap}
+.langs a,.langs span{font-size:13px;padding:6px 12px;border-radius:999px;
+background:rgba(255,246,232,.14);color:var(--cream)}
+.langs span{background:var(--sunny);color:var(--ink);font-weight:700}
+.langs a:hover{background:rgba(255,246,232,.28);text-decoration:none}
+header{background:var(--grape);background:linear-gradient(170deg,#5a4f92 0%,#4a4076 55%,#3b3363 100%);
+color:var(--cream);padding-bottom:64px}
+.hero{display:grid;grid-template-columns:1.05fr .95fr;gap:48px;align-items:center;padding:36px 0 0}
+.hero h1{font-size:42px;line-height:1.12;margin:18px 0 14px;letter-spacing:-.5px}
+.hero p{font-size:18px;color:rgba(255,246,232,.86);margin:0 0 28px;max-width:36em}
+.hero-logo{width:96px;height:96px;border-radius:26px;box-shadow:0 12px 32px rgba(0,0,0,.28)}
+.cta{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.btn{display:inline-block;background:var(--sunny);color:var(--ink);font-weight:800;
+padding:15px 28px;border-radius:14px;font-size:17px;box-shadow:0 8px 20px rgba(0,0,0,.22)}
+.btn:hover{background:#ffd77a;text-decoration:none}
+.btn-ghost{color:var(--cream);border:2px solid rgba(255,246,232,.4);padding:13px 24px;
+border-radius:14px;font-weight:700}
+.btn-ghost:hover{background:rgba(255,246,232,.12);text-decoration:none}
+.sub{font-size:14px;color:rgba(255,246,232,.7);margin-top:14px}
+.hero-art img{width:100%;max-width:420px;display:block;margin:0 auto;
+filter:drop-shadow(0 18px 38px rgba(0,0,0,.32))}
+main{padding:64px 0 0}
+section{margin-bottom:64px}
+h2{font-size:28px;margin:0 0 20px;letter-spacing:-.3px}
+h3{font-size:17px;margin:0 0 6px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px}
+.card{background:var(--card);border-radius:18px;padding:22px 24px;
+box-shadow:0 2px 10px rgba(46,38,80,.07)}
+.card p{margin:0;color:var(--muted);font-size:15px}
+.prose{max-width:62ch;color:#4a4270}
+.steps{counter-reset:s;display:grid;gap:16px}
+.step{background:var(--card);border-radius:18px;padding:20px 24px 20px 66px;position:relative;
+box-shadow:0 2px 10px rgba(46,38,80,.07)}
+.step:before{counter-increment:s;content:counter(s);position:absolute;left:20px;top:20px;
+width:32px;height:32px;border-radius:50%;background:var(--mint);color:var(--ink);
+font-weight:800;display:grid;place-items:center}
+table{width:100%;border-collapse:collapse;background:var(--card);border-radius:18px;
+overflow:hidden;box-shadow:0 2px 10px rgba(46,38,80,.07)}
+td{padding:13px 22px;border-bottom:1px solid #efeaf7}
+tr:last-child td{border-bottom:none}
+td:last-child{text-align:right}
+kbd{background:var(--grape);color:var(--cream);border-radius:7px;padding:3px 10px;
+font:600 13px ui-monospace,SFMono-Regular,Menlo,monospace}
+.note{font-size:14px;color:var(--muted);margin-top:14px}
+.shot{width:100%;border-radius:16px;box-shadow:0 8px 28px rgba(46,38,80,.16);display:block}
+ul.plain{list-style:none;padding:0;margin:0;display:grid;gap:10px}
+ul.plain li{background:var(--card);border-radius:12px;padding:12px 18px;
+box-shadow:0 2px 8px rgba(46,38,80,.06);color:#4a4270}
+.safe{background:var(--grape-deep);color:var(--cream);border-radius:20px;padding:32px 34px}
+.safe h2{color:var(--cream)}
+.safe p{color:rgba(255,246,232,.85);max-width:62ch;margin:0}
+footer{background:var(--grape-deep);color:rgba(255,246,232,.7);padding:40px 0;font-size:14px}
+footer a{color:var(--cream)}
+.flinks{display:flex;gap:20px;flex-wrap:wrap;margin-bottom:18px}
+.disclaimer{max-width:70ch;font-size:13px;line-height:1.6;opacity:.75}
+@media(max-width:820px){.hero{grid-template-columns:1fr;gap:28px;text-align:left}
+.hero h1{font-size:32px}main{padding-top:44px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <nav>
+      <span class="brand"><img src="../assets/logo-128.png" alt="El icono de Multi-Tofu, un pajarito redondo color crema sobre fondo morado">Multi-Tofu</span>
+      <span class="langs"><a href="https://minutesback.github.io/multi-tofu/" hreflang="en">English</a><a href="https://minutesback.github.io/multi-tofu/fr/" hreflang="fr">Français</a><span>Español</span><a href="https://minutesback.github.io/multi-tofu/pt/" hreflang="pt">Português</a></span>
+    </nav>
+    <div class="hero">
+      <div>
+        <img class="hero-logo" src="../assets/logo.png" alt="El icono de Multi-Tofu, un pajarito redondo color crema sobre fondo morado">
+        <h1>Juega Dofus multicuenta en Mac sin pelearte con las ventanas.</h1>
+        <p>Multi-Tofu cambia entre tus clientes de Dofus con una sola tecla. Lee cada ventana y pone delante al personaje correcto, se acabó buscar en Mission Control en mitad de un combate.</p>
+        <div class="cta">
+          <a class="btn" href="https://github.com/MinutesBack/multi-tofu/releases/latest">Descargar para macOS</a>
+          <a class="btn-ghost" href="https://github.com/MinutesBack/multi-tofu">Ver el código</a>
+        </div>
+        <p class="sub">Gratis y de código abierto. Apple Silicon e Intel. Versión 0.1.0.</p>
+      </div>
+      <div class="hero-art">
+        <img src="../wheel.png" alt="La rueda de personajes de Multi-Tofu, seis personajes de Dofus en círculo con el señalado resaltado" width="640" height="640">
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section>
+    <h2>Qué hace</h2>
+    <div class="grid">
+      <div class="card"><h3>Cambio instantáneo</h3><p>F1 y F2 recorren tu rotación, F3 vuelve directo a tu líder. Una tecla, sin ratón, sin Mission Control.</p></div>
+      <div class="card"><h3>Rueda de personajes</h3><p>Mantén Opción y aparece una rueda bajo el cursor con el icono de clase de cada personaje. Mueve, suelta, ese cliente pasa al frente.</p></div>
+      <div class="card"><h3>Equipos</h3><p>Divide tus personajes en equipos y rota solo dentro del activo. Útil cuando montas una mazmorra y dejas el resto aparcado.</p></div>
+      <div class="card"><h3>Teclas directas</h3><p>Una tecla fija por personaje. F5 siempre va a tu Iop, haga lo que haga la rotación.</p></div>
+      <div class="card"><h3>Nombres reales</h3><p>Los nombres se leen en vivo de la ventana del juego. Nada que escribir, nada que mantener.</p></div>
+      <div class="card"><h3>Cuatro idiomas</h3><p>Inglés, francés, español y portugués, según el idioma de tu sistema.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Reconoce tus personajes solo</h2>
+    <p class="prose">Nunca escribes un nombre. Multi-Tofu lee el título de la ventana de Dofus, así que en cuanto un personaje inicia sesión su nombre real aparece en la rueda, en la barra de menús y en los ajustes. Un cliente abierto pero todavía en la pantalla de conexión no tiene personaje, así que se muestra como Cuenta 1, Cuenta 2 y así. Siguen siendo clicables en el menú, puedes ir a conectarte, pero quedan fuera de la rotación de F1. Una pulsación nunca te lleva a una ventana sin personaje.</p>
+  </section>
+
+  <section>
+    <img class="shot" src="../preferences.png" alt="La ventana de ajustes de Multi-Tofu con los atajos y la lista de personajes detectados" loading="lazy" width="1520" height="1085">
+  </section>
+
+  <section>
+    <h2>Instalación en un minuto</h2>
+    <div class="steps">
+      <div class="step"><h3>Descargar y descomprimir</h3><p style="margin:0;color:var(--muted);font-size:15px">Coge el zip de la página de versiones y arrastra Multi-Tofu a tu carpeta Aplicaciones.</p></div>
+      <div class="step"><h3>Clic derecho, Abrir</h3><p style="margin:0;color:var(--muted);font-size:15px">La app no está firmada con una cuenta de desarrollador de Apple de pago, así que la primera vez hace falta clic derecho y Abrir. Después se abre con normalidad.</p></div>
+      <div class="step"><h3>Permitir Accesibilidad</h3><p style="margin:0;color:var(--muted);font-size:15px">macOS lo pide una vez. Multi-Tofu la necesita para leer los títulos de ventana y oír tus atajos. Actívala y los atajos arrancan un par de segundos después, sin reiniciar.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Atajos por defecto</h2>
+    <table>
+      <tr><td>Personaje siguiente</td><td><kbd>F1</kbd></td></tr>
+      <tr><td>Personaje anterior</td><td><kbd>F2</kbd></td></tr>
+      <tr><td>Ir al líder</td><td><kbd>F3</kbd></td></tr>
+      <tr><td>Buscar ventanas</td><td><kbd>F4</kbd></td></tr>
+      <tr><td>Rueda de personajes</td><td><kbd>mantener Opción</kbd></td></tr>
+      <tr><td>Abrir ajustes</td><td><kbd>Control + F1</kbd></td></tr>
+    </table>
+    <p class="note">Todo se puede reasignar. Los atajos se guardan como códigos de tecla física, así que siguen funcionando si cambias entre AZERTY y QWERTY.</p>
+  </section>
+
+  <section class="safe">
+    <h2>No automatiza nada</h2>
+    <p>Multi-Tofu trae ventanas al frente. Esa es toda la función. No hay bot, ni lectura de paquetes, ni inyección de memoria, ni difusión de una pulsación a varios clientes a la vez. Cada acción sigue viniendo de ti, en un cliente cada vez. El código es público, no hace falta que te fíes de nuestra palabra.</p>
+  </section>
+
+  <section>
+    <h2>Por qué existe</h2>
+    <p class="prose">En Windows están Dosoft y Organizer. En Mac no había nada, y el proyecto más parecido se archivó en agosto de 2026. Dosoft es Apache 2.0 pero está construido enteramente sobre la API Win32, así que nada se puede portar. Esta es una implementación nueva sobre la API de Accesibilidad de macOS, un CGEventTap para los atajos y AppKit para la rueda, reutilizando el arte de clases y el diseño funcional bajo esa licencia.</p>
+  </section>
+
+  <section>
+    <h2>Requisitos</h2>
+    <ul class="plain">
+      <li>macOS 12 o posterior</li>
+      <li>Dofus 3 (Unity), el cliente que instala el Ankama Launcher</li>
+      <li>Apple Silicon o Intel, una sola compilación universal</li>
+      <li>Modo ventana o sin bordes, la rueda no se dibuja sobre pantalla completa exclusiva</li>
+    </ul>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="flinks">
+      <a href="https://github.com/MinutesBack/multi-tofu#readme">Documentación</a>
+      <a href="https://github.com/MinutesBack/multi-tofu/issues">Informar de un problema</a>
+      <a href="https://github.com/MinutesBack/multi-tofu/blob/main/LICENSE">Apache 2.0</a>
+      <a href="https://github.com/MinutesBack/multi-tofu/releases">Descargar para macOS</a>
+    </div>
+    <p class="disclaimer">Multi-Tofu no está afiliado a Ankama Games, ni respaldado ni patrocinado por ellos. DOFUS y todos los nombres e imágenes asociados son propiedad de Ankama Games.</p>
+  </div>
+</footer>
+</body>
+</html>

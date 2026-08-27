@@ -3,7 +3,7 @@
 Outil multicompte Dofus pour macOS. Bascule instantanée entre vos clients, roue
 des personnages, gestion d'équipes, pour Dofus 3 (Unity).
 
-**[English](README.md)** · **Français** · **[Español](README.es.md)** · **[Português](README.pt.md)**
+**[Site](https://minutesback.github.io/multi-tofu/fr/)** · **[English](README.md)** · **Français** · **[Español](README.es.md)** · **[Português](README.pt.md)**
 
 Portage macOS indépendant de [Dosoft](https://www.dosoft.fr), qui n'existe que
 sous Windows. Aucun code Windows n'est réutilisable, il repose sur l'API Win32,

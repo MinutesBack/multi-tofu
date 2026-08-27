@@ -3,7 +3,7 @@
 A Dofus multi-account window switcher for macOS. Instant switch, a character
 wheel, team split, and per-character keys, for Dofus 3 (Unity).
 
-**English** · **[Français](README.fr.md)** · **[Español](README.es.md)** · **[Português](README.pt.md)**
+**[Website](https://minutesback.github.io/multi-tofu/)** · **English** · **[Français](README.fr.md)** · **[Español](README.es.md)** · **[Português](README.pt.md)**
 
 An independent macOS port of [Dosoft](https://www.dosoft.fr), which is Windows
 only. None of the Windows code carries over, since it is built on the Win32 API,
