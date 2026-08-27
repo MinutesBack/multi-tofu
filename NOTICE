@@ -1,0 +1,54 @@
+Multi-Tofu
+Copyright 2026 JMax92
+
+Licensed under the Apache License, Version 2.0. See LICENSE.
+
+--------------------------------------------------------------------------------
+Upstream project
+--------------------------------------------------------------------------------
+
+Multi-Tofu is an independent macOS port of Dosoft, a Dofus multi-account window
+switcher for Windows.
+
+  Project : https://github.com/LuframeCode/dosoft
+  Site    : https://www.dosoft.fr
+  Licence : Apache License 2.0
+
+What comes from upstream
+
+  - The product concept and feature design: instant switch, character wheel,
+    team split.
+  - The class artwork in multitofu/assets/skin and the interface sounds in
+    multitofu/assets/sounds, redistributed unmodified under the Apache 2.0
+    licence the upstream project publishes them under.
+  - The account model: window title parsing into pseudo plus class, per
+    character active flag, team assignment, custom rotation order, leader focus.
+
+What is new here
+
+  - Every line of platform code. Upstream targets the Win32 API (win32gui,
+    SetForegroundWindow, keyboard hooks, WinRT toast notifications), none of
+    which exists on macOS. This port uses the Accessibility API for window
+    discovery and focus, a CGEventTap for global shortcuts, and AppKit for the
+    menu bar item, the radial wheel overlay and the preferences window.
+  - Shortcuts stored as physical keycodes, so a bind survives an AZERTY to
+    QWERTY switch.
+  - The app icon, the wheel artwork and palette, and DofusMock.app under tools/.
+  - The English, French, Spanish and Portuguese interface strings.
+
+--------------------------------------------------------------------------------
+Third-party artwork
+--------------------------------------------------------------------------------
+
+The class icons and interface sounds depict content from DOFUS, a game
+published by Ankama Games. They are included here because the upstream project
+publishes them under Apache 2.0, and are used only to identify a player's own
+characters inside their own game client.
+
+Multi-Tofu is not affiliated with, endorsed by, or sponsored by Ankama Games.
+DOFUS and all related names and artwork are the property of Ankama Games.
+
+If you represent Ankama and want these assets removed, open an issue or contact
+the repository owner and they will be taken out. The application falls back to a
+neutral icon for any class whose artwork is missing, so removal does not break
+it.

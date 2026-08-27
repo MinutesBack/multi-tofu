@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install
+        run: |
+          python -m venv .venv
+          ./.venv/bin/pip install --upgrade pip
+          ./.venv/bin/pip install -r requirements.txt
+
+      - name: Compile
+        run: ./.venv/bin/python -m compileall -q multitofu tools tests
+
+      - name: Logic tests
+        run: ./.venv/bin/python tests/test_parsing.py
+
+      # The rotation and hotkey suites drive real windows and need
+      # Accessibility permission, which a CI runner cannot grant. They run
+      # locally against the mock clients in tools/.

@@ -1,0 +1,192 @@
+# Multi-Tofu
+
+A Dofus multi-account window switcher for macOS. Instant switch, a character
+wheel, team split, and per-character keys, for Dofus 3 (Unity).
+
+An independent macOS port of [Dosoft](https://www.dosoft.fr), which is Windows
+only. None of the Windows code carries over, since it is built on the Win32 API,
+so this is a fresh implementation on the macOS Accessibility API, a CGEventTap
+and AppKit.
+
+<p align="center">
+  <img src="docs/wheel.png" alt="The character wheel" width="380">
+</p>
+
+![Settings](docs/preferences.png)
+
+## What it does
+
+- **Instant switch.** Global shortcuts cycle to the next or previous client and
+  jump straight back to your leader.
+- **Character wheel.** Hold Option, a wheel appears at the cursor with a class
+  icon per character. Move the mouse, release Option, that client is in front.
+- **Team split.** Put characters in teams and cycle only inside the active team.
+- **Direct binds.** One fixed key per character.
+- **Menu bar.** Click any character to focus it, switch rotation, open settings.
+- **Four languages.** English, French, Spanish and Portuguese, matched to your
+  system on first run and switchable at any time.
+
+## Character names
+
+You do not type them in. Multi-Tofu reads the Dofus window title, so the moment
+a character logs in their real name appears in the wheel, the menu and the
+settings list.
+
+A client that is open but still sitting on the login screen has no character on
+it yet, so it shows as `Account 1`, `Account 2` and so on. Those placeholders
+stay visible in the menu, where you can click one to go and log it in, but they
+are kept out of the F1 rotation so a keypress never lands you on a window with
+no character. Set `login_windows_in_rotation` to true if you want them included.
+
+## Install
+
+```
+./tools/build_app.sh --install
+open /Applications
+```
+
+Launch **Multi-Tofu** from Spotlight or Applications. First launch asks for
+Accessibility. Grant it to Multi-Tofu itself, then quit and relaunch. The bundle
+is ad-hoc signed with a fixed identifier, so rebuilding does not cost you the
+permission.
+
+## Where the interface is
+
+Multi-Tofu is a background utility, so there is no main window. You reach it
+three ways:
+
+- **Dock icon**, when `show_dock_icon` is on. Click it to open Settings, right
+  click it for the character list.
+- **Menu bar icon**, the bird. Click for the character list and Settings.
+- **Control+F1** opens Settings from anywhere, even with no client running.
+
+Settings works with no game open. It shows whether Accessibility is on, how
+many clients it can see, and lets you change every shortcut. The character list
+fills in once clients are running.
+
+A crowded menu bar is worth knowing about: macOS parks an overflow status item
+behind the notch where it cannot be drawn, and the app still thinks it is
+visible. Multi-Tofu detects that and offers the Dock icon instead.
+
+## Run from source
+
+```
+python3 -m venv .venv
+./.venv/bin/pip install -r requirements.txt
+./run.sh
+```
+
+Run that from Terminal.app. macOS attributes Accessibility to whatever owns the
+process, which from source is Terminal:
+
+1. `./run.sh --grant` raises the system prompt
+2. System Settings > Privacy & Security > Accessibility, switch on **Terminal**
+3. Quit Terminal fully with Cmd+Q, reopen, run `./run.sh` again
+
+Check what it can see at any time:
+
+```
+./run.sh --probe
+```
+
+## Default shortcuts
+
+| Action | Key |
+| --- | --- |
+| Next character | F1 |
+| Previous character | F2 |
+| Focus leader | F3 |
+| Rescan windows | F4 |
+| Character wheel | hold Option |
+
+Change any of them in Preferences. Binds are stored as physical keycodes, so
+they hold up if you switch between AZERTY and QWERTY.
+
+## Languages
+
+English, French, Spanish and Portuguese. On first run it follows your macOS
+language and falls back to English. Change it in Settings under Language, which
+takes effect immediately.
+
+<p align="center">
+  <img src="docs/preferences-fr.png" alt="Settings in French" width="620">
+</p>
+
+Character names, class names and team assignments are never translated, and
+teams are stored as `Team 1` internally whatever language you read them in, so
+switching language never touches your configuration.
+
+Adding a language means one dictionary in `multitofu/i18n.py`. The test suite
+fails if any string is missing from any language or if the placeholders drift
+apart between them.
+
+## Config
+
+`~/Library/Application Support/Multi-Tofu/config.json`
+
+- `language` (default auto): auto, en, fr, es or pt.
+- `login_windows_in_rotation` (default false): a client still on the login
+  screen stays listed in the menu bar so you can click it, but F1 never lands
+  on a window with no character on it.
+- `hide_login_windows`: drop them entirely, menu included.
+- `wheel_delay_ms` (default 200): how long Option must be held before the wheel
+  appears, so a normal Option press in game does not trigger it.
+- `swallow_bound_keys` (default true): bound keys do not reach Dofus.
+- `scan_interval`: seconds between window rescans.
+
+## Testing without several accounts
+
+`tools/` builds `DofusMock.app`, a native stand-in client that opens one window
+with a Dofus-shaped title. Several copies run under one bundle id, the way the
+Ankama Launcher runs several real clients, so the whole rotation can be tested
+with one account or none.
+
+```
+./tools/build_mock_app.sh
+./tools/mocks.sh start        # 3 characters + 1 login window
+MULTITOFU_CONFIG=/tmp/multitofu_test.json ./.venv/bin/python tests/test_rotation.py
+./.venv/bin/python tests/test_hotkeys.py
+./tools/mocks.sh stop
+```
+
+`test_hotkeys.py` posts genuine CGEvents and reads the focused window back from
+the accessibility layer, so it exercises the same path your keyboard does. Give
+it a quiet machine. Anything that grabs the front window mid-run is reported as
+a skipped check rather than a failure, but the fewer of those the better.
+
+## Known limits
+
+- **Fullscreen.** The wheel is an overlay panel. Over a client in exclusive
+  fullscreen it may not draw. Run Dofus windowed or borderless.
+- **Retro Autofocus is not ported.** It reads Windows toast notifications and
+  macOS has no equivalent a third-party app can subscribe to.
+- **Dofus Retro is not supported yet.** Unity only.
+- **Rebuilding costs the Accessibility grant.** macOS ties the grant to the
+  app's code signature, and an ad-hoc signature changes every build. After
+  running `build_app.sh` again, run
+  `tccutil reset Accessibility fr.multitofu.app`, launch, and approve once.
+  The app picks the grant up within two seconds, no relaunch needed.
+- **Unity is slow to answer.** Accessibility calls are capped at 350 ms and
+  focus work is deferred off the event tap callback, because macOS disables a
+  tap whose callback overruns and that shows up as dropped keystrokes.
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). It lists the macOS quirks that cost the
+most time to find, so read it before touching the focus or event tap code.
+
+## Licence
+
+Apache License 2.0. See [LICENSE](LICENSE).
+
+This is an independent port of [Dosoft](https://github.com/LuframeCode/dosoft),
+which is Apache 2.0. Its class artwork, interface sounds and feature design are
+reused under that licence, and [NOTICE](NOTICE) records exactly what came from
+where.
+
+Multi-Tofu is not affiliated with, endorsed by, or sponsored by Ankama Games.
+DOFUS and all related names and artwork are the property of Ankama Games. The
+class icons are included to let a player identify their own characters in their
+own client. If you represent Ankama and want them removed, open an issue and
+they will be taken out. The app falls back to a neutral icon for any class whose
+artwork is missing, so removing them does not break anything.
