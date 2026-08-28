@@ -9,7 +9,8 @@ from .i18n import t
 from .roles import colour_for
 from .keys import describe
 from AppKit import (
-    NSAttributedString, NSBezierPath, NSColor, NSCompositingOperationSourceOver,
+    NSAffineTransform, NSAttributedString, NSBezierPath, NSColor,
+    NSCompositingOperationSourceOver,
     NSFont, NSFontAttributeName, NSForegroundColorAttributeName, NSGraphicsContext,
     NSImage, NSMakeRect, NSPanel, NSScreen, NSShadow, NSSound,
     NSStrokeColorAttributeName, NSStrokeWidthAttributeName, NSView,
@@ -394,6 +395,13 @@ class PanelView(NSView):
             if icon is not None:
                 context.saveGraphicsState()
                 NSBezierPath.bezierPathWithOvalInRect_(disc_rect).addClip()
+                # This view is flipped so the list reads top-down, but image
+                # drawing follows the flip and lands the sprite upside down.
+                # Mirror the y-axis about the portrait centre to set it upright.
+                flip = NSAffineTransform.transform()
+                flip.translateXBy_yBy_(0.0, 2.0 * pcy)
+                flip.scaleXBy_yBy_(1.0, -1.0)
+                flip.concat()
                 iso = pr * 2 * 1.16
                 icon.drawInRect_fromRect_operation_fraction_(
                     NSMakeRect(pcx - iso / 2.0, pcy - iso / 2.0, iso, iso),
