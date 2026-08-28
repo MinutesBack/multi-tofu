@@ -20,9 +20,10 @@ CGEventTap y AppKit.
 
 - **Cambio instantáneo.** Atajos globales pasan al cliente siguiente o anterior,
   o vuelven directamente a tu líder.
-- **Rueda de personajes.** Mantén Opción, aparece una rueda bajo el cursor con
-  el icono de clase de cada personaje. Mueve el ratón, suelta, ese cliente pasa
-  al frente.
+- **Rueda o panel de grupo.** Mantén tu tecla y elige el cliente a poner
+  delante. Dos estilos, a elegir en los ajustes: una rueda bajo el cursor, o un
+  panel de grupo a la izquierda parecido al marco de grupo de Dofus, una corona
+  en tu líder y la tecla de acceso en cada personaje.
 - **Equipos.** Reparte tus personajes y rota solo dentro del equipo activo.
 - **Teclas directas.** Una tecla fija por personaje.
 - **Barra de menús.** Haz clic en un personaje para traerlo al frente, cambia de

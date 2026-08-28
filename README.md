@@ -20,8 +20,10 @@ and AppKit.
 
 - **Instant switch.** Global shortcuts cycle to the next or previous client and
   jump straight back to your leader.
-- **Character wheel.** Hold Option, a wheel appears at the cursor with a class
-  icon per character. Move the mouse, release Option, that client is in front.
+- **Wheel or party panel.** Hold your key and pick a client to bring forward.
+  Two looks, switchable in Settings: a radial wheel under the cursor, or a party
+  panel pinned to the left that reads like the Dofus group frame, a crown on
+  your leader and the jump key on each character.
 - **Team split.** Put characters in teams and cycle only inside the active team.
 - **Direct binds.** One fixed key per character.
 - **Menu bar.** Click any character to focus it, switch rotation, open settings.

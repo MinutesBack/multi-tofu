@@ -144,6 +144,16 @@ class PrefsController(NSObject):
         self.wheel_check.setAction_("wheelToggled:")
         content.addSubview_(self.wheel_check)
 
+        content.addSubview_(label(t("wheel_style_label"), 626, 174, 94))
+        self.style_popup = NSPopUpButton.alloc().initWithFrame_pullsDown_(
+            NSMakeRect(722, 170, 156, 24), False)
+        self.style_codes = ["wheel", "panel"]
+        self.style_popup.addItemsWithTitles_(
+            [t("wheel_style_wheel"), t("wheel_style_panel")])
+        self.style_popup.setTarget_(self)
+        self.style_popup.setAction_("wheelStyleChanged:")
+        content.addSubview_(self.style_popup)
+
         content.addSubview_(label(t("leader_label"), 395, 174, 60))
         self.leader_popup = NSPopUpButton.alloc().initWithFrame_pullsDown_(
             NSMakeRect(450, 170, 160, 24), False)
@@ -259,6 +269,9 @@ class PrefsController(NSObject):
         if code in self.language_codes:
             self.language_popup.selectItemAtIndex_(self.language_codes.index(code))
         self.wheel_check.setState_(1 if cfg.get("wheel_enabled", True) else 0)
+        style = cfg.get("wheel_style", "wheel")
+        self.style_popup.selectItemAtIndex_(
+            self.style_codes.index(style) if style in self.style_codes else 0)
         for key, btn in self.global_buttons.items():
             btn.setTitle_(describe(cfg["binds"].get(key)))
 
@@ -571,6 +584,11 @@ class PrefsController(NSObject):
             # turning it off has to give the clients back, not leave them
             # invisible until the next switch
             self.app.scanner.unhide_all()
+
+    def wheelStyleChanged_(self, sender):
+        self._cancel_capture()
+        self.app.config.data["wheel_style"] = self.style_codes[sender.indexOfSelectedItem()]
+        self.app.config.save()
 
     def awakeToggled_(self, sender):
         self._cancel_capture()

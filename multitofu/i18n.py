@@ -341,6 +341,17 @@ STRINGS = {
     "fix_cancel": {
         "en": "Cancel", "fr": "Annuler", "es": "Cancelar", "pt": "Cancelar",
     },
+    "wheel_style_label": {
+        "en": "Switcher style", "fr": "Style du s\u00e9lecteur",
+        "es": "Estilo del selector", "pt": "Estilo do seletor",
+    },
+    "wheel_style_wheel": {
+        "en": "Wheel", "fr": "Roue", "es": "Rueda", "pt": "Roda",
+    },
+    "wheel_style_panel": {
+        "en": "Party panel", "fr": "Panneau de groupe",
+        "es": "Panel de grupo", "pt": "Painel de grupo",
+    },
     "hide_others_label": {
         "en": "Hide the other clients when I switch",
         "fr": "Masquer les autres clients quand je change",

@@ -38,6 +38,8 @@ DEFAULTS = {
     # edges and Command+Tab stays readable
     "hide_others": False,
     "wheel_enabled": True,
+    # "wheel" (radial) or "panel" (vertical party-frame list)
+    "wheel_style": "wheel",
     "wheel_modifier": "alt",
     "wheel_radius": 148,
     "wheel_delay_ms": 200,

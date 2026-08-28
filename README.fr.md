@@ -19,9 +19,11 @@ donc tout est réécrit sur l'API d'Accessibilité macOS, un CGEventTap et AppKi
 
 - **Bascule instantanée.** Des raccourcis globaux passent au client suivant ou
   précédent, ou reviennent directement sur votre chef d'équipe.
-- **Roue des personnages.** Maintenez Option, une roue apparaît sous le curseur
-  avec l'icône de classe de chaque personnage. Bougez la souris, relâchez, le
-  client est au premier plan.
+- **Roue ou panneau de groupe.** Maintenez votre touche et choisissez le client
+  à mettre devant. Deux styles, au choix dans les réglages : une roue sous le
+  curseur, ou un panneau de groupe à gauche qui ressemble au cadre de groupe de
+  Dofus, une couronne sur votre meneur et la touche de raccourci sur chaque
+  personnage.
 - **Équipes.** Répartissez vos personnages et ne tournez que dans l'équipe
   active.
 - **Touches directes.** Une touche fixe par personnage.

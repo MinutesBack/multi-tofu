@@ -7,6 +7,7 @@ import objc
 
 from .i18n import t
 from .roles import colour_for
+from .keys import describe
 from AppKit import (
     NSAttributedString, NSBezierPath, NSColor, NSCompositingOperationSourceOver,
     NSFont, NSFontAttributeName, NSForegroundColorAttributeName, NSGraphicsContext,
@@ -62,6 +63,19 @@ MINT = rgb(95, 224, 176, 1.0)
 INK = rgb(46, 38, 80, 1.0)
 MUTED = rgb(120, 110, 160, 1.0)
 BADGE = rgb(255, 246, 232, 0.30)
+
+# The panel style: a party-frame look, dark and bronze so it sits in the game.
+PANEL_BG = rgb(30, 34, 45, 0.97)
+PANEL_FRAME = rgb(12, 15, 22, 1.0)
+BRONZE = rgb(150, 110, 64, 1.0)
+GOLD_HI = rgb(240, 208, 120, 1.0)
+SEL_ROW = rgb(58, 52, 34, 0.98)
+
+PANEL_W = 250.0
+ROW_H = 58.0
+PANEL_PAD = 10.0
+PORTRAIT_R = 20.0
+PANEL_CANCEL = 80.0
 
 
 def font(size, bold=True):
@@ -282,6 +296,130 @@ class WheelView(NSView):
                           cx, cy - self.inner * 0.48)
 
 
+def _panel_crown(cx, base_y):
+    """Small gold crown sitting above a portrait, drawn in a flipped view so
+    up is a smaller y."""
+    s = 15.0
+    half = s * 0.6
+    peak = base_y - s * 0.7
+    side = base_y - s * 0.4
+    val = base_y - s * 0.06
+    path = NSBezierPath.bezierPath()
+    path.moveToPoint_(NSMakePoint(cx - half, base_y))
+    for px, py in ((cx - half, side), (cx - half * 0.45, val), (cx, peak),
+                   (cx + half * 0.45, val), (cx + half, side), (cx + half, base_y)):
+        path.lineToPoint_(NSMakePoint(px, py))
+    path.closePath()
+    GOLD_HI.set()
+    path.fill()
+    INK.set()
+    path.setLineWidth_(1.5)
+    path.stroke()
+
+
+def _draw_left(attributed, x, cy):
+    """Left-aligned text, vertically centred on cy."""
+    size = attributed.size()
+    attributed.drawAtPoint_(NSMakePoint(x, cy - size.height / 2.0))
+
+
+class PanelView(NSView):
+    """The party-frame switcher: a vertical list of framed class portraits."""
+
+    def initWithFrame_(self, frame):
+        self = objc.super(PanelView, self).initWithFrame_(frame)
+        if self is None:
+            return None
+        self.entries = []
+        self.keys = []
+        self.hover = -1
+        self.leader = -1
+        return self
+
+    def isFlipped(self):
+        return True
+
+    def drawRect_(self, rect):
+        NSColor.clearColor().set()
+        NSBezierPath.fillRect_(rect)
+        if not self.entries:
+            return
+        b = self.bounds()
+        w, h = b.size.width, b.size.height
+
+        context = NSGraphicsContext.currentContext()
+        context.saveGraphicsState()
+        shadow = NSShadow.alloc().init()
+        shadow.setShadowColor_(NSColor.colorWithCalibratedWhite_alpha_(0.0, 0.4))
+        shadow.setShadowBlurRadius_(16.0)
+        shadow.setShadowOffset_(NSMakeSize(0, -3))
+        shadow.set()
+        body = NSBezierPath.bezierPathWithRoundedRect_xRadius_yRadius_(
+            NSMakeRect(2, 2, w - 4, h - 4), 16.0, 16.0)
+        PANEL_BG.set()
+        body.fill()
+        context.restoreGraphicsState()
+        body.setLineWidth_(2.5)
+        BRONZE.set()
+        body.stroke()
+
+        n = len(self.entries)
+        for i, entry in enumerate(self.entries):
+            row_top = PANEL_PAD + i * ROW_H
+            row_cy = row_top + ROW_H / 2.0
+            sel = (i == self.hover)
+
+            if sel:
+                srow = NSBezierPath.bezierPathWithRoundedRect_xRadius_yRadius_(
+                    NSMakeRect(5, row_top + 3, w - 10, ROW_H - 6), 10.0, 10.0)
+                SEL_ROW.set()
+                srow.fill()
+                GOLD_HI.set()
+                NSBezierPath.fillRect_(NSMakeRect(5, row_top + 3, 4, ROW_H - 6))
+
+            pcx, pcy, pr = 40.0, row_cy, PORTRAIT_R
+            ring = NSBezierPath.bezierPathWithOvalInRect_(
+                NSMakeRect(pcx - pr - 3, pcy - pr - 3, (pr + 3) * 2, (pr + 3) * 2))
+            PANEL_FRAME.set()
+            ring.fill()
+            (GOLD_HI if sel else BRONZE).set()
+            ring.setLineWidth_(2.5)
+            ring.stroke()
+
+            disc_rect = NSMakeRect(pcx - pr, pcy - pr, pr * 2, pr * 2)
+            disc = NSBezierPath.bezierPathWithOvalInRect_(disc_rect)
+            PANEL_FRAME.set()
+            disc.fill()
+            icon = load_icon(entry.get("slug"))
+            if icon is not None:
+                context.saveGraphicsState()
+                NSBezierPath.bezierPathWithOvalInRect_(disc_rect).addClip()
+                iso = pr * 2 * 1.16
+                icon.drawInRect_fromRect_operation_fraction_(
+                    NSMakeRect(pcx - iso / 2.0, pcy - iso / 2.0, iso, iso),
+                    NSMakeRect(0, 0, 0, 0), NSCompositingOperationSourceOver, 1.0)
+                context.restoreGraphicsState()
+
+            if i == self.leader:
+                _panel_crown(pcx, pcy - pr - 2)
+
+            name = entry["name"][:12]
+            colour = GOLD_HI if sel else CREAM
+            _draw_left(outlined(name, 14.0, colour, INK, -2.0), pcx + pr + 16, row_cy)
+
+            key = self.keys[i] if i < len(self.keys) else str(i + 1)
+            chx = w - 34.0
+            chip = NSBezierPath.bezierPathWithRoundedRect_xRadius_yRadius_(
+                NSMakeRect(chx - 16, pcy - 15, 32, 30), 7.0, 7.0)
+            PANEL_FRAME.set()
+            chip.fill()
+            (GOLD_HI if sel else BRONZE).set()
+            chip.setLineWidth_(2.0)
+            chip.stroke()
+            draw_centered(outlined(key, 13.0, CREAM, INK, -1.5), chx, pcy)
+        del n
+
+
 class Wheel:
     """Owns the overlay panel and the hover maths."""
 
@@ -293,13 +431,11 @@ class Wheel:
         self.hover = -1
         self.center = (0.0, 0.0)
         self.visible = False
+        self.built_style = None
+        self.panel_origin = (0.0, 0.0)
+        self.panel_size = (0.0, 0.0)
 
-    def _ensure_panel(self):
-        if self.panel is not None:
-            return
-        outer = float(self.config.data.get("wheel_radius", 130))
-        side = (outer + 30) * 2
-        rect = NSMakeRect(0, 0, side, side)
+    def _new_panel(self, rect):
         panel = NSPanel.alloc().initWithContentRect_styleMask_backing_defer_(
             rect, BORDERLESS | NONACTIVATING_PANEL, 2, False)
         panel.setOpaque_(False)
@@ -312,12 +448,39 @@ class Wheel:
             NSWindowCollectionBehaviorCanJoinAllSpaces
             | NSWindowCollectionBehaviorStationary
             | NSWindowCollectionBehaviorFullScreenAuxiliary)
-        view = WheelView.alloc().initWithFrame_(rect)
-        view.outer = outer
-        view.inner = float(self.config.data.get("wheel_inner_radius", 46))
+        return panel
+
+    def _screen_at(self, nx, ny):
+        for screen in NSScreen.screens():
+            f = screen.frame()
+            if (f.origin.x <= nx <= f.origin.x + f.size.width
+                    and f.origin.y <= ny <= f.origin.y + f.size.height):
+                return screen
+        return NSScreen.mainScreen() or NSScreen.screens()[0]
+
+    def _ensure_panel(self):
+        style = self.config.data.get("wheel_style", "wheel")
+        if self.panel is not None and self.built_style == style:
+            return
+        if self.panel is not None:
+            self.panel.orderOut_(None)
+            self.panel = None
+            self.view = None
+        if style == "panel":
+            rect = NSMakeRect(0, 0, PANEL_W, 400)
+            view = PanelView.alloc().initWithFrame_(rect)
+        else:
+            outer = float(self.config.data.get("wheel_radius", 130))
+            side = (outer + 30) * 2
+            rect = NSMakeRect(0, 0, side, side)
+            view = WheelView.alloc().initWithFrame_(rect)
+            view.outer = outer
+            view.inner = float(self.config.data.get("wheel_inner_radius", 46))
+        panel = self._new_panel(rect)
         panel.setContentView_(view)
         self.panel = panel
         self.view = view
+        self.built_style = style
 
     def show(self, cg_x, cg_y, entries, current_name=None):
         # one entry draws a single full-circle segment; zero would divide by
@@ -326,14 +489,17 @@ class Wheel:
             return False
         self._ensure_panel()
         self.entries = entries
-        self.view.entries = entries
-        self.hover = -1
+        cur = -1
         if current_name:
             for i, entry in enumerate(entries):
                 if entry["name"] == current_name:
-                    self.hover = i
+                    cur = i
                     break
-        self.view.hover = self.hover
+        if self.built_style == "panel":
+            return self._show_panel(cg_x, cg_y, entries, cur)
+        self.view.entries = entries
+        self.hover = cur
+        self.view.hover = cur
         nx, ny = cg_to_ns(cg_x, cg_y)
         self.center = (nx, ny)
         frame = self.panel.frame()
@@ -344,8 +510,44 @@ class Wheel:
         self.visible = True
         return True
 
+    def _show_panel(self, cg_x, cg_y, entries, cur):
+        cbinds = self.config.data.get("character_binds", {})
+        keys = []
+        for i, entry in enumerate(entries):
+            bind = cbinds.get(entry["name"])
+            if bind and bind.get("keycode") is not None:
+                keys.append(describe(bind)[:4])
+            else:
+                keys.append(str(i + 1))
+        leader_name = self.config.data.get("leader_name", "")
+        leader = next((i for i, e in enumerate(entries)
+                       if e["name"] == leader_name), -1)
+        n = len(entries)
+        pw, ph = PANEL_W, n * ROW_H + 2 * PANEL_PAD
+        nx, ny = cg_to_ns(cg_x, cg_y)
+        screen = self._screen_at(nx, ny)
+        sf = screen.frame()
+        ox = sf.origin.x + 24.0
+        oy = sf.origin.y + (sf.size.height - ph) / 2.0
+        self.panel.setFrame_display_(NSMakeRect(ox, oy, pw, ph), False)
+        self.view.setFrame_(NSMakeRect(0, 0, pw, ph))
+        self.view.entries = entries
+        self.view.keys = keys
+        self.view.leader = leader
+        self.hover = cur
+        self.view.hover = cur
+        self.panel_origin = (ox, oy)
+        self.panel_size = (pw, ph)
+        self.view.setNeedsDisplay_(True)
+        self.panel.orderFrontRegardless()
+        self.visible = True
+        return True
+
     def update_pointer(self, cg_x, cg_y):
         if not self.visible or not self.entries:
+            return
+        if self.built_style == "panel":
+            self._update_panel(cg_x, cg_y)
             return
         nx, ny = cg_to_ns(cg_x, cg_y)
         dx = nx - self.center[0]
@@ -360,6 +562,24 @@ class Wheel:
             angle = math.degrees(math.atan2(dy, dx))
             offset = ((90.0 + step / 2.0) - angle) % 360.0
             new_hover = int(offset // step) % count
+        if new_hover != self.hover:
+            self.hover = new_hover
+            self.view.hover = new_hover
+            self.view.setNeedsDisplay_(True)
+            if new_hover >= 0 and self.config.data.get("wheel_sounds", True):
+                play("hover", self.config.data.get("volume_level", 50) / 100.0)
+
+    def _update_panel(self, cg_x, cg_y):
+        nx, ny = cg_to_ns(cg_x, cg_y)
+        ox, oy = self.panel_origin
+        pw, ph = self.panel_size
+        n = len(self.entries)
+        if (nx > ox + pw + PANEL_CANCEL or nx < ox - PANEL_CANCEL
+                or ny > oy + ph + PANEL_CANCEL or ny < oy - PANEL_CANCEL):
+            new_hover = -1
+        else:
+            rel = (oy + ph) - PANEL_PAD - ny
+            new_hover = max(0, min(n - 1, int(rel // ROW_H)))
         if new_hover != self.hover:
             self.hover = new_hover
             self.view.hover = new_hover

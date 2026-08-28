@@ -20,9 +20,10 @@ o AppKit.
 
 - **Troca instantânea.** Atalhos globais passam para o cliente seguinte ou
   anterior, ou voltam direto para o seu líder.
-- **Roda de personagens.** Segure Option, uma roda aparece no cursor com o
-  ícone de classe de cada personagem. Mova o mouse, solte, aquele cliente vem
-  para a frente.
+- **Roda ou painel de grupo.** Segure sua tecla e escolha o cliente para trazer
+  à frente. Dois estilos, à escolha nos ajustes: uma roda sob o cursor, ou um
+  painel de grupo à esquerda parecido com o quadro de grupo do Dofus, uma coroa
+  no seu líder e a tecla de atalho em cada personagem.
 - **Times.** Divida seus personagens e gire apenas dentro do time ativo.
 - **Teclas diretas.** Uma tecla fixa por personagem.
 - **Barra de menus.** Clique num personagem para trazê-lo à frente, troque de
