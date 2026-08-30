@@ -81,15 +81,20 @@ codesign --verify --deep --strict "$APP" || { echo "signature is not valid"; exi
 codesign -dv "$APP" 2>&1 | head -3
 echo "built $APP"
 mkdir -p "$ROOT/dist"
+ARCHIVE="$STAGE/Multi-Tofu-$VERSION-macOS-universal.zip"
+ditto -c -k --sequesterRsrc --keepParent "$APP" "$ARCHIVE"
+cp "$ARCHIVE" "$ROOT/dist/Multi-Tofu-$VERSION-macOS-universal.zip"
+echo "packaged $ROOT/dist/Multi-Tofu-$VERSION-macOS-universal.zip"
 
 # ./tools/build_app.sh --install puts it where macOS expects it, which matters
 # because the Accessibility grant is tied to the app's location
 if [[ "$1" == "--install" ]]; then
   rm -rf "/Applications/Multi-Tofu.app"
-  cp -R "$APP" "/Applications/Multi-Tofu.app"
+  ditto --noextattr "$APP" "/Applications/Multi-Tofu.app"
   xattr -cr "/Applications/Multi-Tofu.app"
   find "/Applications/Multi-Tofu.app" -name "._*" -delete 2>/dev/null || true
   codesign --force --deep "${SIGN_ARGS[@]}" --identifier fr.multitofu.app "/Applications/Multi-Tofu.app"
+  codesign --verify --deep --strict "/Applications/Multi-Tofu.app"
   # leave exactly one launchable copy on disk, two is how you end up granting
   # permission to the wrong one
   # a second copy is a second Dock icon and a second Spotlight hit, and it is

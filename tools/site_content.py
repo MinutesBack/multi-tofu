@@ -3,8 +3,8 @@
 SITE = "https://minutesback.github.io/multi-tofu/"
 REPO = "https://github.com/MinutesBack/multi-tofu"
 RELEASES = REPO + "/releases"
-DOWNLOAD = REPO + "/releases/latest"
-VERSION = "0.5.0"
+VERSION = "0.5.2"
+DOWNLOAD = REPO + "/releases/latest/download/Multi-Tofu-" + VERSION + "-macOS-universal.zip"
 
 LANGS = ["en", "fr", "es", "pt"]
 LANG_NAMES = {"en": "English", "fr": "Français", "es": "Español", "pt": "Português"}
@@ -22,6 +22,7 @@ CONTENT = {
  "features_title": "What it does",
  "features": [
    ("Instant switch", "F1 and F2 walk your rotation, F3 jumps straight back to your leader. One key, no mouse, no Mission Control."),
+   ("Exact active client", "Rotation follows the exact Dofus window you are using, even when macOS reports several game clients as frontmost."),
    ("Character wheel or party panel", "Hold your key and pick a client to bring forward. Choose the look in Settings: a radial wheel under your cursor, or a party panel pinned to the left that reads like the Dofus group frame, with a crown on your leader and a key on each character."),
    ("Teams", "Split your characters into teams and cycle only inside the active one. Useful when you run a dungeon group and leave the rest parked."),
    ("Direct keys", "Bind one fixed key per character. F5 always goes to your Iop, whatever the rotation is doing."),
@@ -76,6 +77,7 @@ CONTENT = {
  "features_title": "Ce que ça fait",
  "features": [
    ("Bascule instantanée", "F1 et F2 parcourent votre rotation, F3 revient directement sur votre chef. Une touche, sans souris, sans Mission Control."),
+   ("Client actif exact", "La rotation suit précisément la fenêtre Dofus utilisée, même quand macOS signale plusieurs clients du jeu au premier plan."),
    ("Roue ou panneau de groupe", "Maintenez votre touche et choisissez le client à mettre devant. Le style se choisit dans les réglages : une roue sous le curseur, ou un panneau de groupe \u00e0 gauche qui ressemble au cadre de groupe de Dofus, avec une couronne sur votre meneur et une touche sur chaque personnage."),
    ("Équipes", "Répartissez vos personnages et ne tournez que dans l'équipe active. Pratique quand vous montez un donjon et laissez le reste en pause."),
    ("Touches directes", "Une touche fixe par personnage. F5 va toujours sur votre Iop, quelle que soit la rotation."),
@@ -130,6 +132,7 @@ CONTENT = {
  "features_title": "Qué hace",
  "features": [
    ("Cambio instantáneo", "F1 y F2 recorren tu rotación, F3 vuelve directo a tu líder. Una tecla, sin ratón, sin Mission Control."),
+   ("Cliente activo exacto", "La rotación sigue la ventana exacta de Dofus que usas, incluso cuando macOS marca varios clientes del juego como activos."),
    ("Rueda o panel de grupo", "Mant\u00e9n tu tecla y elige el cliente a poner delante. El estilo se elige en los ajustes: una rueda bajo el cursor, o un panel de grupo a la izquierda que se parece al marco de grupo de Dofus, con una corona en tu l\u00edder y una tecla en cada personaje."),
    ("Equipos", "Divide tus personajes en equipos y rota solo dentro del activo. Útil cuando montas una mazmorra y dejas el resto aparcado."),
    ("Teclas directas", "Una tecla fija por personaje. F5 siempre va a tu Iop, haga lo que haga la rotación."),
@@ -184,6 +187,7 @@ CONTENT = {
  "features_title": "O que faz",
  "features": [
    ("Troca instantânea", "F1 e F2 percorrem sua rotação, F3 volta direto para o líder. Uma tecla, sem mouse, sem Mission Control."),
+   ("Cliente ativo exato", "A rotação segue a janela exata do Dofus em uso, mesmo quando o macOS informa vários clientes do jogo como ativos."),
    ("Roda ou painel de grupo", "Segure sua tecla e escolha o cliente para trazer \u00e0 frente. O estilo se escolhe nos ajustes: uma roda sob o cursor, ou um painel de grupo \u00e0 esquerda parecido com o quadro de grupo do Dofus, com uma coroa no seu l\u00edder e uma tecla em cada personagem."),
    ("Times", "Divida seus personagens em times e gire só dentro do ativo. Útil quando você monta uma dungeon e deixa o resto parado."),
    ("Teclas diretas", "Uma tecla fixa por personagem. F5 sempre vai no seu Iop, faça o que fizer a rotação."),
