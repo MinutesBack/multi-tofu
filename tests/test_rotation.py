@@ -10,7 +10,7 @@ import time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from AppKit import NSApplication, NSApplicationActivationPolicyAccessory, NSApp
+from AppKit import NSApplication, NSApplicationActivationPolicyProhibited, NSApp
 from Foundation import NSObject, NSTimer
 
 from helpers import focused_title, outside_app_has_focus, wait_for_client_focus
@@ -53,10 +53,17 @@ class Suite(NSObject):
         passed = sum(1 for r in RESULTS if r)
         extra = f", {SKIPPED[0]} skipped (focus stolen)" if SKIPPED[0] else ""
         print(f"\n{passed}/{total} checks passed{extra}")
-        NSApp.terminate_(self)
+        # NSApplication.terminate_ always exits with status 0, which made a
+        # failed integration run look green to CI and shell scripts.
+        sys.stdout.flush()
+        os._exit(0 if passed == total else 1)
 
     def body(self):
         config = Config()
+        # The native mock client deliberately uses its own bundle id. Include
+        # it here so the README's documented test command works with a fresh
+        # throwaway config instead of silently scanning only real Dofus.
+        config.data["bundle_ids"] = ["com.Ankama.Dofus", "com.ankama.dofus.mock"]
         config.data["current_mode"] = "ALL"
         config.data["accounts_state"] = {}
         config.data["accounts_team"] = {}
@@ -134,7 +141,9 @@ class Suite(NSObject):
 
 
 app = NSApplication.sharedApplication()
-app.setActivationPolicy_(NSApplicationActivationPolicyAccessory)
+# The test runner itself must never become a focus candidate while checking
+# cross-process activation.
+app.setActivationPolicy_(NSApplicationActivationPolicyProhibited)
 suite = Suite.alloc().init()
 NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(
     0.5, suite, "run:", None, False)

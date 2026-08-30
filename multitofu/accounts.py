@@ -7,7 +7,9 @@ from ApplicationServices import (
     AXIsProcessTrusted,
     AXIsProcessTrustedWithOptions,
     AXUIElementCreateApplication,
+    AXUIElementCreateSystemWide,
     AXUIElementCopyAttributeValue,
+    AXUIElementGetPid,
     AXUIElementSetAttributeValue,
     AXUIElementPerformAction,
 )
@@ -63,6 +65,7 @@ class Scanner:
         self.accounts = []
         self.leader = None
         self._app_refs = {}
+        self._last_focused_pid = None
 
     # ---------- discovery ----------
 
@@ -115,6 +118,8 @@ class Scanner:
         for pid in list(self._app_refs):
             if pid not in live_pids:
                 self._app_refs.pop(pid, None)
+        if self._last_focused_pid not in live_pids:
+            self._last_focused_pid = None
         return out
 
     # ---------- title parsing ----------
@@ -246,10 +251,35 @@ class Scanner:
         if not cycle:
             return -1
         front_pid = None
-        for pid in {a["pid"] for a in cycle}:
-            if _ax(self._app_ref(pid), "AXFrontmost"):
-                front_pid = pid
-                break
+
+        # Several Dofus clients share one bundle id. macOS can leave
+        # AXFrontmost=true on more than one of those process elements after a
+        # switch, so scanning that flag may pick an arbitrary old client. The
+        # system-wide focused application is the one authoritative element and
+        # carries the exact process id.
+        focused_app = _ax(AXUIElementCreateSystemWide(), "AXFocusedApplication")
+        if focused_app is not None:
+            try:
+                err, pid = AXUIElementGetPid(focused_app, None)
+                if err == 0:
+                    front_pid = int(pid)
+            except Exception:
+                pass
+
+        # Some transition frames briefly expose no focused application. Prefer
+        # the last client we deliberately focused; unlike AXFrontmost it cannot
+        # be true for several same-bundle processes at once.
+        cycle_pids = {a["pid"] for a in cycle}
+        if front_pid not in cycle_pids and self._last_focused_pid in cycle_pids:
+            front_pid = self._last_focused_pid
+
+        # Keep the old flag scan only for startup, before this Scanner has
+        # focused anything itself.
+        if front_pid is None:
+            for pid in cycle_pids:
+                if _ax(self._app_ref(pid), "AXFrontmost"):
+                    front_pid = pid
+                    break
         if front_pid is None:
             return -1
         candidates = [i for i, a in enumerate(cycle) if a["pid"] == front_pid]
@@ -292,6 +322,7 @@ class Scanner:
             # a hidden app cannot be raised, and only this option ever hides
             # one, so the round trip stays off the path when it is off
             AXUIElementSetAttributeValue(app_ref, "AXHidden", False)
+
         ok = app.activateWithOptions_(
             NSApplicationActivateIgnoringOtherApps | NSApplicationActivateAllWindows)
         if not ok:
@@ -299,6 +330,7 @@ class Scanner:
                 app.activate()
             except Exception:
                 pass
+        self._last_focused_pid = pid
         if hiding:
             self.hide_others(pid)
         return True

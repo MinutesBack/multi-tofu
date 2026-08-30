@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import Quartz
-from AppKit import NSWorkspace
+from AppKit import NSApplication, NSApplicationActivationPolicyProhibited, NSWorkspace
 
 from helpers import (BUNDLES, focused_title, outside_app_has_focus,
                      wait_for_client_focus)
@@ -47,6 +47,10 @@ BASE_CONFIG = {
     "accounts_state": {}, "accounts_team": {}, "custom_order": [],
     "classes": {}, "leader_name": "", "character_binds": {}, "roles": {},
 }
+
+# Posting synthetic keys must not make the Python test runner itself eligible
+# to become the front application between assertions.
+NSApplication.sharedApplication().setActivationPolicy_(NSApplicationActivationPolicyProhibited)
 
 
 def record(ok, label, detail=""):
@@ -86,8 +90,11 @@ def move_mouse(x, y):
 def launch(config):
     json.dump(config, open(TEST_CONFIG, "w"), indent=2)
     env = dict(os.environ, MULTITOFU_CONFIG=TEST_CONFIG, MULTITOFU_QUIET="1")
+    packaged = os.environ.get("MULTITOFU_APP_EXECUTABLE")
+    command = ([packaged] if packaged else
+               [os.path.join(ROOT, ".venv/bin/python"), "-m", "multitofu"])
     proc = subprocess.Popen(
-        [os.path.join(ROOT, ".venv/bin/python"), "-m", "multitofu"],
+        command,
         cwd=ROOT, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
     time.sleep(4.0)
     if proc.poll() is not None:
