@@ -122,6 +122,35 @@ class Scanner:
             self._last_focused_pid = None
         return out
 
+    def _raw_vm_windows(self):
+        """[(pid, window_ref, title)] for the configured Fusion VM.
+
+        The Dofus process lives inside Windows and is therefore invisible to
+        macOS Accessibility. Fusion's VM window is the honest macOS target.
+        Requiring its configured title avoids adding Fusion's library or
+        settings windows to the character rotation.
+        """
+        cfg = self.config.data
+        if not cfg.get("vm_target_enabled", True):
+            return []
+        wanted = {b.lower() for b in cfg.get("vm_bundle_ids", [])}
+        title_match = str(cfg.get("vm_window_title", "")).strip().lower()
+        if not wanted or not title_match:
+            return []
+        out = []
+        for app in NSWorkspace.sharedWorkspace().runningApplications():
+            bid = (app.bundleIdentifier() or "").lower()
+            if bid not in wanted:
+                continue
+            pid = app.processIdentifier()
+            for win in self._windows_for(self._app_ref(pid)):
+                if _ax(win, "AXRole") not in (None, "AXWindow"):
+                    continue
+                title = str(_ax(win, "AXTitle") or "").strip()
+                if title_match in title.lower():
+                    out.append((pid, win, title))
+        return out[:1]
+
     # ---------- title parsing ----------
 
     def parse_title(self, title, menu_counter):
@@ -189,12 +218,33 @@ class Scanner:
                 "pid": pid,
                 "window": win,
                 "title": title,
+                "kind": "dofus",
                 "class_name": klass,
                 "slug": to_slug(klass),
                 "active": bool(cfg["accounts_state"].get(pseudo, True)),
                 "team": cfg["accounts_team"].get(pseudo, cfg.get("teams", ["Team 1"])[0]),
                 "role": cfg.get("roles", {}).get(pseudo, "none"),
                 "is_menu": is_menu,
+            }))
+
+        # A VM is one switch destination even if several Dofus windows exist
+        # inside the guest. Switching accounts inside Windows remains a guest
+        # concern; Multi-Tofu only brings the VM itself to the foreground.
+        for pid, win, title in self._raw_vm_windows():
+            pseudo = str(cfg.get("vm_display_name") or "Dofus (Windows VM)")
+            rows.append(Account({
+                "name": pseudo,
+                "pid": pid,
+                "window": win,
+                "title": title,
+                "kind": "vm",
+                "class_name": "VMware Fusion",
+                "slug": None,
+                "active": bool(cfg["accounts_state"].get(pseudo, True)),
+                "team": cfg["accounts_team"].get(
+                    pseudo, cfg.get("teams", ["Team 1"])[0]),
+                "role": cfg.get("roles", {}).get(pseudo, "none"),
+                "is_menu": False,
             }))
 
         # A login placeholder is positional. Its number shifts the moment a

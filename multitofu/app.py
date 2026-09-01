@@ -386,7 +386,8 @@ class DosoftApp(NSObject):
         menu.addItem_(mode_item)
 
         menu.addItem_(NSMenuItem.separatorItem())
-        if self.scanner.accounts:
+        if any(a.get("kind", "dofus") == "dofus"
+               for a in self.scanner.accounts):
             close = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
                 t("menu_quit_clients"), "quitClients:", "")
             close.setTarget_(self)
@@ -429,7 +430,10 @@ class DosoftApp(NSObject):
     def quitClients_(self, sender):
         """Ask every client to quit. Behind a confirmation on purpose, this is
         the one irreversible thing the app can do."""
-        accounts = list(self.scanner.accounts)
+        # Fusion is a switch target, not a Dofus process that this command is
+        # allowed to terminate.
+        accounts = [a for a in self.scanner.accounts
+                    if a.get("kind", "dofus") == "dofus"]
         if not accounts:
             return
         alert = NSAlert.alloc().init()

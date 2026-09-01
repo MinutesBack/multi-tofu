@@ -26,6 +26,9 @@ o AppKit.
   no seu líder e a tecla de atalho em cada personagem.
 - **Times.** Divida seus personagens e gire apenas dentro do time ativo.
 - **Teclas diretas.** Uma tecla fixa por personagem.
+- **Mac + VM do Windows.** Rode um cliente do Dofus direto no Mac e outro no
+  VMware Fusion. A VM entra na mesma rotação, roda e teclas diretas. O
+  Multi-Tofu fica no Mac, sem instalar nada no Windows.
 - **Barra de menus.** Clique num personagem para trazê-lo à frente, troque de
   rotação, abra os ajustes.
 - **Quatro idiomas.** Inglês, francês, espanhol e português, seguindo o sistema

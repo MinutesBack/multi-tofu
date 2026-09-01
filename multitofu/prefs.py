@@ -221,6 +221,14 @@ class PrefsController(NSObject):
                                 color=NSColor.secondaryLabelColor())
         content.addSubview_(self.login_note)
 
+        self.vm_check = NSButton.alloc().initWithFrame_(NSMakeRect(540, 332, 340, 22))
+        self.vm_check.setButtonType_(NSSwitchButton)
+        self.vm_check.setTitle_(t("vm_target_label"))
+        self.vm_check.setToolTip_(t("vm_target_help"))
+        self.vm_check.setTarget_(self)
+        self.vm_check.setAction_("vmTargetToggled:")
+        content.addSubview_(self.vm_check)
+
         content.addSubview_(label(t("characters"), 20, 386, 200, 20, bold=True, size=13))
         muted = NSColor.secondaryLabelColor()
         for text, col_x, width in [(t("col_order"), 8, 40), (t("col_on"), 64, 40),
@@ -257,6 +265,7 @@ class PrefsController(NSObject):
         self.launch_check.setState_(
             1 if cfg.get("open_settings_on_launch", True) else 0)
         self.hide_check.setState_(1 if cfg.get("hide_others") else 0)
+        self.vm_check.setState_(1 if cfg.get("vm_target_enabled", True) else 0)
         self.login_check.setEnabled_(loginitem.available())
         self.login_check.setState_(1 if loginitem.is_enabled() else 0)
         if not loginitem.available():
@@ -585,6 +594,12 @@ class PrefsController(NSObject):
             # invisible until the next switch
             self.app.scanner.unhide_all()
 
+    def vmTargetToggled_(self, sender):
+        self._cancel_capture()
+        self.app.config.data["vm_target_enabled"] = bool(sender.state())
+        self.app.config.save()
+        self.app.refresh()
+
     def wheelStyleChanged_(self, sender):
         self._cancel_capture()
         self.app.config.data["wheel_style"] = self.style_codes[sender.indexOfSelectedItem()]
@@ -660,4 +675,3 @@ class PrefsController(NSObject):
     def rescan_(self, sender):
         self._cancel_capture()
         self.app.refresh()
-

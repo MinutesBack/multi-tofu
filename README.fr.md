@@ -27,6 +27,9 @@ donc tout est réécrit sur l'API d'Accessibilité macOS, un CGEventTap et AppKi
 - **Équipes.** Répartissez vos personnages et ne tournez que dans l'équipe
   active.
 - **Touches directes.** Une touche fixe par personnage.
+- **Mac + VM Windows.** Lancez un client Dofus directement sur le Mac et un
+  autre dans VMware Fusion. La VM rejoint la même rotation, la roue et les
+  touches directes. Multi-Tofu reste sur le Mac, rien à installer dans Windows.
 - **Barre des menus.** Cliquez un personnage pour l'afficher, changez de
   rotation, ouvrez les réglages.
 - **Quatre langues.** Anglais, français, espagnol et portugais, calées sur votre

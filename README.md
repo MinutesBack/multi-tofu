@@ -26,6 +26,9 @@ and AppKit.
   your leader and the jump key on each character.
 - **Team split.** Put characters in teams and cycle only inside the active team.
 - **Direct binds.** One fixed key per character.
+- **Mac + Windows VM.** Run one Dofus client natively on your Mac and another
+  in VMware Fusion. The VM joins the same rotation, wheel and direct shortcuts.
+  Multi-Tofu stays on the Mac, with nothing to install inside Windows.
 - **Menu bar.** Click any character to focus it, switch rotation, open settings.
 - **Four languages.** English, French, Spanish and Portuguese, matched to your
   system on first run and switchable at any time.

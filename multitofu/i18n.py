@@ -368,6 +368,22 @@ STRINGS = {
         "pt": "S\u00f3 o cliente da frente fica na tela. Os outros continuam "
               "rodando e voltam assim que voc\u00ea troca para eles.",
     },
+    "vm_target_label": {
+        "en": "Include my Windows VM in the switcher",
+        "fr": "Inclure ma VM Windows dans le sélecteur",
+        "es": "Incluir mi VM de Windows en el selector",
+        "pt": "Incluir minha VM do Windows no seletor",
+    },
+    "vm_target_help": {
+        "en": "When the configured VMware Fusion window is open, it becomes "
+              "one more target for F1, F2, the wheel and direct keys.",
+        "fr": "Quand la fenêtre VMware Fusion configurée est ouverte, elle "
+              "devient une cible pour F1, F2, la roue et les touches directes.",
+        "es": "Cuando la ventana configurada de VMware Fusion está abierta, "
+              "aparece como destino para F1, F2, la rueda y las teclas directas.",
+        "pt": "Quando a janela configurada do VMware Fusion está aberta, ela "
+              "vira um destino para F1, F2, a roda e as teclas diretas.",
+    },
     "alert_ok": {"en": "OK", "fr": "OK", "es": "OK", "pt": "OK"},
     # French puts a space before a colon
     "colon": {"en": ":", "fr": " :", "es": ":", "pt": ":"},

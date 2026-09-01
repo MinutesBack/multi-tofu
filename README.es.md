@@ -26,6 +26,9 @@ CGEventTap y AppKit.
   en tu líder y la tecla de acceso en cada personaje.
 - **Equipos.** Reparte tus personajes y rota solo dentro del equipo activo.
 - **Teclas directas.** Una tecla fija por personaje.
+- **Mac + VM de Windows.** Ejecuta un cliente de Dofus directamente en el Mac y
+  otro en VMware Fusion. La VM se une a la misma rotación, rueda y teclas
+  directas. Multi-Tofu se queda en el Mac, sin instalar nada en Windows.
 - **Barra de menús.** Haz clic en un personaje para traerlo al frente, cambia de
   rotación, abre los ajustes.
 - **Cuatro idiomas.** Inglés, francés, español y portugués, según tu sistema en

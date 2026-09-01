@@ -10,6 +10,12 @@ CONFIG_PATH = os.environ.get("MULTITOFU_CONFIG") or os.path.join(CONFIG_DIR, "co
 # keycode-based binds: layout agnostic. 122=F1 120=F2 99=F3 118=F4 58=left alt
 DEFAULTS = {
     "bundle_ids": ["com.Ankama.Dofus"],
+    # Fusion owns the guest's window on macOS. Treat that window as one more
+    # switch target without reaching into or automating the Windows guest.
+    "vm_target_enabled": True,
+    "vm_bundle_ids": ["com.vmware.fusion"],
+    "vm_window_title": "Windows 11",
+    "vm_display_name": "Dofus (Windows VM)",
     "title_separator": " - ",
     "classes": {},
     "accounts_state": {},

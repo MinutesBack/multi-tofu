@@ -1,6 +1,7 @@
 """Pure-logic tests. No windows, no permissions, safe to run in CI."""
 import os
 import sys
+import tempfile
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 os.environ.setdefault("MULTITOFU_CONFIG", "/tmp/multitofu_parsing_test.json")
@@ -24,6 +25,28 @@ def check(label, actual, expected):
 def main():
     set_language("en")  # the placeholder is localised, pin it for the test
     scanner = Scanner(Config())
+
+    print("VM target")
+    scanner.config.data["vm_target_enabled"] = False
+    check("disabled VM has no windows", scanner._raw_vm_windows(), [])
+    scanner.config.data["vm_target_enabled"] = True
+
+    class StubScanner(Scanner):
+        def _raw_windows(self):
+            return [(101, object(), "Mac-Hero - Iop - 3.7.0 - Release")]
+
+        def _raw_vm_windows(self):
+            return [(202, object(), "Windows 11 Dofus")]
+
+    with tempfile.TemporaryDirectory() as folder:
+        vm_scanner = StubScanner(Config(os.path.join(folder, "config.json")))
+        vm_rows = vm_scanner.scan()
+        check("VM joins discovered accounts",
+              [(a["name"], a["kind"]) for a in vm_rows],
+              [("Mac-Hero", "dofus"), ("Dofus (Windows VM)", "vm")])
+        check("VM joins shortcut rotation",
+              [a["name"] for a in vm_scanner.cycle_list()],
+              ["Mac-Hero", "Dofus (Windows VM)"])
 
     print("window titles")
     cases = [
