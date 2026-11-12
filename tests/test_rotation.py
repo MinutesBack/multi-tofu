@@ -5,7 +5,6 @@ Then:                        MULTITOFU_CONFIG=/tmp/multitofu_test.json ./.venv/b
 """
 import os
 import sys
-import time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -13,7 +12,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from AppKit import NSApplication, NSApplicationActivationPolicyProhibited, NSApp
 from Foundation import NSObject, NSTimer
 
-from helpers import focused_title, outside_app_has_focus, wait_for_client_focus
+from helpers import focused_title, outside_app_has_focus, pump, wait_for_client_focus
 
 from multitofu.accounts import Scanner
 from multitofu.config import Config
@@ -25,7 +24,7 @@ SKIPPED = [0]
 
 def check(label, account, scanner):
     """A login window has no character name, so compare on the raw title."""
-    time.sleep(SETTLE)
+    pump(SETTLE)
     if not wait_for_client_focus():
         SKIPPED[0] += 1
         print(f"  SKIP  {label:28} another app holds the front window", flush=True)

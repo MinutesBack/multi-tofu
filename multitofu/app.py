@@ -109,7 +109,7 @@ class DosoftApp(NSObject):
         self.scanner = Scanner(self.config)
         self.wheel = Wheel(self.config)
         self.hotkeys = HotkeyManager(
-            self.config, self.queueAction, self.onModifier, self.onMouse,
+            self.config, self.queueAction, self.queueModifier, self.onMouse,
             self.queuePeek)
         self.hotkeys_running = False
         self.prefs = PrefsController.alloc().initWithApp_(self)
@@ -505,6 +505,23 @@ class DosoftApp(NSObject):
 
     def dispatchPeek_(self, timer):
         self.onPeek(bool(timer.userInfo()))
+
+    @objc.python_method
+    def queueModifier(self, down):
+        """Same reason as queueAction, plus one of its own.
+
+        The tap holds the modifier's flagsChanged event until the callback
+        returns. Switching clients from inside it delivers the release to the
+        client we land on, so the one we left saw the modifier go down and
+        never come back up: it keeps it stuck, and on return every key reaches
+        the game as modifier+key. Letting the event through first keeps each
+        client's down and up paired.
+        """
+        NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(
+            0, self, "dispatchModifier:", bool(down), False)
+
+    def dispatchModifier_(self, timer):
+        self.onModifier(bool(timer.userInfo()))
 
     @objc.python_method
     def onPeek(self, down):

@@ -7,8 +7,8 @@ option going off, and the app quitting, both have to give the clients back.
 """
 import os
 import sys
-import time
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 os.environ.setdefault("MULTITOFU_CONFIG", "/tmp/multitofu_hide_test.json")
 
@@ -16,6 +16,7 @@ from ApplicationServices import (
     AXUIElementCopyAttributeValue, AXUIElementCreateApplication,
 )
 
+from helpers import pump
 from multitofu.accounts import Scanner, accessibility_trusted
 from multitofu.config import Config
 
@@ -60,7 +61,7 @@ def main():
     others = {a["pid"] for a in scanner.accounts[1:]}
     every = {a["pid"] for a in scanner.accounts}
     scanner.focus(target)
-    time.sleep(1.0)
+    pump(1.0)
     hidden = hidden_pids(every)
     record(others <= hidden, "every other client is hidden",
            f"{len(hidden & others)}/{len(others)}")
@@ -69,12 +70,12 @@ def main():
     # switching again has to bring the next one back on its own
     second = scanner.accounts[1]
     scanner.focus(second)
-    time.sleep(1.0)
+    pump(1.0)
     record(not is_hidden(second["pid"]),
            "switching to a hidden client shows it again")
 
     scanner.unhide_all()
-    time.sleep(0.6)
+    pump(0.6)
     left = hidden_pids(every)
     record(not left, "unhide_all gives every client back",
            f"{len(left)} still hidden")
