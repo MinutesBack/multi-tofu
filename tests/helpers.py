@@ -10,6 +10,7 @@ import time
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from AppKit import NSWorkspace
+from Foundation import NSDate, NSRunLoop
 from ApplicationServices import (
     AXUIElementCopyAttributeValue, AXUIElementCreateApplication,
     AXUIElementCreateSystemWide,
@@ -69,3 +70,15 @@ def wait_for_client_focus(timeout=6.0):
             return True
         time.sleep(0.4)
     return False
+
+
+def pump(seconds):
+    """Wait while letting the main run loop turn.
+
+    Scanner.focus checks the switch and hides the other clients from a timer,
+    which a plain time.sleep never lets fire.
+    """
+    deadline = time.time() + seconds
+    while time.time() < deadline:
+        NSRunLoop.currentRunLoop().runUntilDate_(
+            NSDate.dateWithTimeIntervalSinceNow_(min(0.05, deadline - time.time())))

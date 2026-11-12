@@ -2,6 +2,8 @@
 import re
 
 from AppKit import NSWorkspace, NSRunningApplication
+from CoreFoundation import CFEqual
+from Foundation import NSTimer
 from ApplicationServices import (
     AXUIElementSetMessagingTimeout,
     AXIsProcessTrusted,
@@ -17,8 +19,11 @@ from ApplicationServices import (
 from .classes import to_slug
 from .i18n import t
 
-NSApplicationActivateIgnoringOtherApps = 1 << 1
 NSApplicationActivateAllWindows = 1 << 0
+# How long to let the window server settle before checking a switch took,
+# and how many times to try again when it did not.
+FOCUS_CHECK_DELAY = 0.05
+FOCUS_RETRIES = 2
 MAX_REMEMBERED = 50
 # A Unity client can take its time answering. The event tap lives on the main
 # run loop, so a slow reply there costs us keystrokes: cap every call.
@@ -66,6 +71,7 @@ class Scanner:
         self.leader = None
         self._app_refs = {}
         self._last_focused_pid = None
+        self._focus_token = 0
 
     # ---------- discovery ----------
 
@@ -343,47 +349,112 @@ class Scanner:
         return candidates[0]
 
     def focus(self, account):
-        """Bring one client to the front.
+        """Bring one client to the front, with the keyboard and the mouse.
 
-        macOS 14+ restricts cross-app activation, so this fires the three
-        mechanisms that each cover a different case: AXRaise puts the right
-        window on top within its own app, AXFrontmost hands the app itself to
-        the window server, and activateWithOptions covers the Spaces switch
-        when the client sits in native fullscreen.
+        A window can be on top without being key: Unity then gets no keyDown
+        and no mouseMoved, so shortcuts and hover die while the client looks
+        focused. So the app is activated once, then the window is made main,
+        raised and focused, and a short timer checks that it really holds the
+        focus before trying again. Hiding the other clients waits for that
+        check, so it never deactivates the target mid transition.
         """
         if not account:
             return False
-        win = account.get("window")
         pid = account.get("pid")
-        app_ref = self._app_ref(pid)
-        try:
-            if _ax(win, "AXMinimized"):
-                AXUIElementSetAttributeValue(win, "AXMinimized", False)
-            AXUIElementSetAttributeValue(win, "AXMain", True)
-            AXUIElementPerformAction(win, "AXRaise")
-            AXUIElementSetAttributeValue(app_ref, "AXFrontmost", True)
-        except Exception:
-            pass
         app = NSRunningApplication.runningApplicationWithProcessIdentifier_(pid)
         if app is None:
             return False
-        hiding = bool(self.config.data.get("hide_others"))
-        if hiding:
+        self._focus_token += 1
+        token = self._focus_token
+        self._bring_forward(account, app)
+        self._last_focused_pid = pid
+        self._after(FOCUS_CHECK_DELAY,
+                    lambda: self._check_focus(token, account, FOCUS_RETRIES))
+        return True
+
+    def _bring_forward(self, account, app):
+        win = account.get("window")
+        pid = account.get("pid")
+        app_ref = self._app_ref(pid)
+        if self.config.data.get("hide_others"):
             # a hidden app cannot be raised, and only this option ever hides
             # one, so the round trip stays off the path when it is off
-            AXUIElementSetAttributeValue(app_ref, "AXHidden", False)
-
-        ok = app.activateWithOptions_(
-            NSApplicationActivateIgnoringOtherApps | NSApplicationActivateAllWindows)
-        if not ok:
-            try:
+            self._set_hidden(pid, False)
+        try:
+            if _ax(win, "AXMinimized"):
+                AXUIElementSetAttributeValue(win, "AXMinimized", False)
+        except Exception:
+            pass
+        # Activate the app first: activation hands key status to whatever the
+        # app thinks is its main window, so the window has to be chosen after.
+        # AXFrontmost is what gets through macOS 14's cooperative activation
+        # for a background caller; activateWithOptions covers the Spaces
+        # switch of a client in native fullscreen.
+        try:
+            AXUIElementSetAttributeValue(app_ref, "AXFrontmost", True)
+        except Exception:
+            pass
+        try:
+            if not app.activateWithOptions_(NSApplicationActivateAllWindows):
                 app.activate()
+        except Exception:
+            pass
+        try:
+            AXUIElementSetAttributeValue(win, "AXMain", True)
+            AXUIElementPerformAction(win, "AXRaise")
+            # AXMain + AXRaise put the window on top but do not make it key
+            AXUIElementSetAttributeValue(win, "AXFocused", True)
+        except Exception:
+            pass
+
+    def _has_focus(self, account):
+        """Read back, independently of what we asked for, who holds the focus."""
+        focused_app = _ax(AXUIElementCreateSystemWide(), "AXFocusedApplication")
+        if focused_app is None:
+            return False
+        try:
+            err, pid = AXUIElementGetPid(focused_app, None)
+        except Exception:
+            return False
+        if err != 0 or int(pid) != account.get("pid"):
+            return False
+        focused_win = _ax(self._app_ref(account["pid"]), "AXFocusedWindow")
+        win = account.get("window")
+        if focused_win is None or win is None:
+            # some clients never expose a focused window; the app is enough
+            return True
+        try:
+            return bool(CFEqual(focused_win, win))
+        except Exception:
+            return True
+
+    def _check_focus(self, token, account, retries):
+        if token != self._focus_token:
+            return  # the user already moved on to another client
+        if not self._has_focus(account) and retries > 0:
+            app = NSRunningApplication.runningApplicationWithProcessIdentifier_(
+                account.get("pid"))
+            if app is not None:
+                self._bring_forward(account, app)
+                self._after(FOCUS_CHECK_DELAY,
+                            lambda: self._check_focus(token, account, retries - 1))
+                return
+        if self.config.data.get("hide_others"):
+            self.hide_others(account.get("pid"))
+
+    @staticmethod
+    def _after(delay, fn):
+        """Run fn on a later pass of the main run loop.
+
+        Never sleep here: focus runs on the main run loop, next to the event
+        tap, and a blocked callback gets the tap disabled by macOS.
+        """
+        def fire(_timer):
+            try:
+                fn()
             except Exception:
                 pass
-        self._last_focused_pid = pid
-        if hiding:
-            self.hide_others(pid)
-        return True
+        NSTimer.scheduledTimerWithTimeInterval_repeats_block_(delay, False, fire)
 
     def _set_hidden(self, pid, hidden):
         """Through the Accessibility API, not NSRunningApplication.

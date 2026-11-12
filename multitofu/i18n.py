@@ -149,6 +149,12 @@ STRINGS = {
         "es": "Personajes", "pt": "Personagens",
     },
     "col_order": {"en": "Order", "fr": "Ordre", "es": "Orden", "pt": "Ordem"},
+    "order_drag_help": {
+        "en": "Drag up or down to change the rotation order",
+        "fr": "Glisser vers le haut ou le bas pour changer l'ordre de rotation",
+        "es": "Arrastra hacia arriba o abajo para cambiar el orden de rotación",
+        "pt": "Arraste para cima ou para baixo para mudar a ordem de rotação",
+    },
     "col_on": {"en": "On", "fr": "Actif", "es": "Activo", "pt": "Ativo"},
     "col_character": {
         "en": "Character", "fr": "Personnage", "es": "Personaje", "pt": "Personagem",

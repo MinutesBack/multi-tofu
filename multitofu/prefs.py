@@ -1,8 +1,8 @@
 """Preferences window: characters, teams, order, binds."""
 import objc
 from AppKit import (
-    NSAlert, NSApp, NSBackingStoreBuffered, NSBezelStyleRounded, NSButton,
-    NSClosableWindowMask, NSColor, NSFont, NSImageScaleProportionallyUpOrDown,
+    NSAlert, NSApp, NSBackingStoreBuffered, NSBezelStyleRounded, NSBezierPath,
+    NSButton, NSClosableWindowMask, NSColor, NSCursor, NSFont, NSImageScaleProportionallyUpOrDown,
     NSImageView, NSMakeRect, NSMiniaturizableWindowMask, NSPopUpButton,
     NSResizableWindowMask, NSScrollView, NSSwitchButton, NSTextField,
     NSTitledWindowMask, NSView, NSWindow, NSWindowStyleMaskTitled,
@@ -56,6 +56,64 @@ def button(title, x, y, w, h, target, action, tag=0):
     return btn
 
 
+class DragHandle(NSView):
+    """The grip at the start of a character row: drag it up or down to move
+    the character in the rotation."""
+
+    def initWithFrame_controller_name_(self, frame, controller, name):
+        self = objc.super(DragHandle, self).initWithFrame_(frame)
+        if self is None:
+            return None
+        self.prefs_ctl = controller
+        self.char_name = name
+        self.dragging = False
+        return self
+
+    def isFlipped(self):
+        return True
+
+    def acceptsFirstMouse_(self, event):
+        return True
+
+    def resetCursorRects(self):
+        self.addCursorRect_cursor_(self.bounds(), NSCursor.openHandCursor())
+
+    def drawRect_(self, rect):
+        colour = (NSColor.controlAccentColor() if self.dragging
+                  else NSColor.tertiaryLabelColor())
+        colour.setFill()
+        width, height = self.bounds().size
+        bar_w, bar_h = 14, 2
+        x = (width - bar_w) / 2
+        top = (height - 3 * bar_h - 2 * 3) / 2
+        for i in range(3):
+            NSBezierPath.fillRect_(
+                NSMakeRect(x, top + i * (bar_h + 3), bar_w, bar_h))
+
+    def mouseDown_(self, event):
+        self.dragging = True
+        self.setNeedsDisplay_(True)
+        NSCursor.closedHandCursor().push()
+        self.prefs_ctl.dragStarted(self.char_name)
+
+    def mouseDragged_(self, event):
+        self.autoscroll_(event)
+        self.prefs_ctl.dragMoved(self._row_y(event))
+
+    def mouseUp_(self, event):
+        self.dragging = False
+        self.setNeedsDisplay_(True)
+        NSCursor.pop()
+        self.prefs_ctl.dragEnded(self.char_name, self._row_y(event))
+
+    @objc.python_method
+    def _row_y(self, event):
+        rows = self.superview()
+        if rows is None:
+            return None
+        return rows.convertPoint_fromView_(event.locationInWindow(), None).y
+
+
 class PrefsController(NSObject):
     def initWithApp_(self, app):
         self = objc.super(PrefsController, self).init()
@@ -67,6 +125,7 @@ class PrefsController(NSObject):
         self.bind_buttons = {}
         self.global_buttons = {}
         self.status_timer = None
+        self.drop_line = None
         return self
 
     # ---------- window ----------
@@ -297,26 +356,17 @@ class PrefsController(NSObject):
         self.bind_buttons = {}
 
         teams = cfg.get("teams", ["Team 1"])
-        rank = {}
-        for acc in accounts:
-            if not acc["is_menu"]:
-                rank[acc["name"]] = len(rank) + 1
         height = max(10, len(accounts) * ROW_HEIGHT + 10)
         self.rows_view.setFrameSize_((WINDOW_W - 40, height))
 
         for i, acc in enumerate(accounts):
             y = i * ROW_HEIGHT + 4
-            # type a number to place a character, which beats clicking an
-            # arrow six times to sort a team by initiative
-            position = NSTextField.alloc().initWithFrame_(NSMakeRect(8, y, 38, 24))
-            position.setStringValue_("" if acc["is_menu"] else str(rank.get(acc["name"], "")))
-            position.setAlignment_(1)  # centred
-            position.setEditable_(not acc["is_menu"])
-            position.setEnabled_(not acc["is_menu"])
-            position.setTarget_(self)
-            position.setAction_("positionChanged:")
-            position.setTag_(i)
-            self.rows_view.addSubview_(position)
+            if not acc["is_menu"]:
+                # a login placeholder has no name to remember a place under
+                handle = DragHandle.alloc().initWithFrame_controller_name_(
+                    NSMakeRect(8, y, 38, 24), self, acc["name"])
+                handle.setToolTip_(t("order_drag_help"))
+                self.rows_view.addSubview_(handle)
 
             check = NSButton.alloc().initWithFrame_(NSMakeRect(64, y, 22, 24))
             check.setButtonType_(NSSwitchButton)
@@ -518,26 +568,65 @@ class PrefsController(NSObject):
         self.app.refresh()
 
 
-    def positionChanged_(self, sender):
+    @objc.python_method
+    def _ordered_names(self):
+        return [a["name"] for a in self.app.scanner.accounts if not a["is_menu"]]
+
+    @objc.python_method
+    def _drop_slot(self, y):
+        """Gap between two rows the pointer is closest to, 0..count."""
+        count = len(self._ordered_names())
+        if y is None:
+            return None
+        return max(0, min(count, int(round(y / ROW_HEIGHT))))
+
+    @objc.python_method
+    def dragStarted(self, name):
         self._cancel_capture()
-        accounts = self.app.scanner.accounts
-        if sender.tag() >= len(accounts):
+        if self.drop_line is None:
+            line = NSView.alloc().initWithFrame_(NSMakeRect(0, 0, 10, 2))
+            line.setWantsLayer_(True)
+            line.layer().setBackgroundColor_(
+                NSColor.controlAccentColor().CGColor())
+            self.drop_line = line
+        self.drop_line.setHidden_(True)
+        self.rows_view.addSubview_(self.drop_line)
+
+    @objc.python_method
+    def dragMoved(self, y):
+        slot = self._drop_slot(y)
+        if slot is None or self.drop_line is None:
             return
-        account = accounts[sender.tag()]
-        if account["is_menu"]:
+        self.drop_line.setFrame_(NSMakeRect(
+            8, slot * ROW_HEIGHT + 1, self.rows_view.frame().size.width - 16, 2))
+        self.drop_line.setHidden_(False)
+
+    @objc.python_method
+    def dragEnded(self, name, y):
+        if self.drop_line is not None:
+            self.drop_line.removeFromSuperview()
+        ordered = self._ordered_names()
+        slot = self._drop_slot(y)
+        # a rescan can land mid drag; trust the name, not the row it started on
+        if slot is None or name not in ordered:
             return
-        try:
-            wanted = int(sender.stringValue().strip())
-        except ValueError:
-            self.reload()
+        start = ordered.index(name)
+        target = slot - 1 if slot > start else slot
+        if target == start:
             return
-        ordered = [a["name"] for a in accounts if not a["is_menu"]]
-        if account["name"] not in ordered:
-            return
-        wanted = max(1, min(len(ordered), wanted)) - 1
-        ordered.remove(account["name"])
-        ordered.insert(wanted, account["name"])
-        self._apply_order(ordered)
+        ordered.remove(name)
+        ordered.insert(target, name)
+        # leave the event handling of the grip being dragged before reload()
+        # throws every row away and builds them again
+        self._pending_order = ordered
+        NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(
+            0, self, "applyPendingOrder:", None, False)
+
+    def applyPendingOrder_(self, timer):
+        ordered = getattr(self, "_pending_order", None)
+        self._pending_order = None
+        if ordered:
+            self._apply_order(ordered)
 
     @objc.python_method
     def _apply_order(self, ordered):
